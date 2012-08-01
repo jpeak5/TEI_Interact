@@ -13,8 +13,11 @@ plugins/Coins
 plugins/ExhibitBuilder
 plugins/SimplePages
 plugins/index.html
+plugins/TeiDisplay
+plugins/tei-samples
 themes/default
 themes/index.html
 themes/minimalist
 themes/rhythm
 themes/seasons
+nbproject/private
