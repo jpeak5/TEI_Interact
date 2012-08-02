@@ -23,14 +23,14 @@ class TeiInteract extends Omeka_Plugin_Abstract {
      * @var string[] the set of hooks that this plugin uses
      */
     protected $_hooks = array('install','initialize', 'public_theme_header', 'public_theme_body');
-    
+
     
     public function hookInstall() {
-        //do your install work here
+        debug('TeiInteract::hookInstall()');
     }
 
     public function hookInitialize() {
-        debug('init just ran');
+        debug('TeiInteract::hookInitialize()');
     }
 
     /**
@@ -40,7 +40,8 @@ class TeiInteract extends Omeka_Plugin_Abstract {
     public function hookPublicThemeHeader($request) {
 
         $item = get_current_item();
-        
+        debug("injecting TeiInteract jQuery");
+        echo js('teiInteract');
 //        echo $item->id;
     }
 
@@ -52,10 +53,7 @@ class TeiInteract extends Omeka_Plugin_Abstract {
 
     }
 
-    public function addStuff(){
-        echo js('teiInteract');
-        debug('addStuff just ran');
-    }
+
 }
 
 $teiInteract = new TeiInteract();
