@@ -1,3 +1,4 @@
+*.svn
 .htaccess
 application
 admin/
@@ -12,8 +13,8 @@ paths.php
 plugins/Coins
 plugins/ExhibitBuilder
 plugins/SimplePages
-plugins/index.html
 plugins/TeiDisplay
+plugins/index.html
 plugins/tei-samples
 themes/default
 themes/index.html
