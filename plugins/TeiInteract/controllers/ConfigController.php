@@ -9,56 +9,9 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
         $this->view->message = "hello World!";
 
 //        $this->view->files = $this->getTeiFiles();
-        $files = $this->getTeiFiles();
+        $records = $this->getTeiFiles();
 
-        foreach ($files as $file) {
-            $tags = array();
-            $xml = new DOMDocument();
-            $path = BASE_DIR.DIRECTORY_SEPARATOR.'archive'.DIRECTORY_SEPARATOR.$file->getStoragePath('archive');
-            _log('attempting to load xml from '.$path);
-            $xml->loadXML(file_get_contents($path));
-//            $elements = $xml->getElementsByTagName('*');
-            $headList = $xml->getElementsByTagName('teiHeader');
-            if($headList->length !== 1){
-                debug("too many teiHeader nodes in the document");
-            }else{
-                $head = $headList->item(0);
-                debug("shifting one node out of NodeList");
-            }
-            
-            $bodyList = $xml->getElementsByTagName('body');
-            if($bodyList->length !== 1){
-                debug("too many teiHeader nodes in the document");
-            }else{
-                $body = $bodyList->item(0);
-                debug("shifting one node out of NodeList");
-                debug("\$body class is ".get_class($body));
-            }
-            
-            $headElements = $head->getElementsByTagName('*');
-            $bodyElements = $body->getElementsByTagName('*');
-            
-            $tags = array('head' => array(),'body' => array());
-            
-            
-            foreach ($headElements as $element) {
-                if(!in_array($element->nodeName, $tags['head'])){
-                    $tags['head'][] = $element->nodeName;
-                    _log("found element ".$element->nodeName);
-                }
-                
-            }
-            foreach ($bodyElements as $element) {
-                if(!in_array($element->nodeName, $tags['body'])){
-                    $tags['body'][] = $element->nodeName;
-                    _log("found element ".$element->nodeName);
-                }
-                
-            }
-            debug("body tags count = ".count($tags['body']));
-            debug("head tags count = ".count($tags['head']));
-            $records[] = array('file' => $file, 'tags' => $tags);
-        }
+
         $this->view->records = $records;
 
 //        /**
