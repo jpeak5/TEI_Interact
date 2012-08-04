@@ -13,7 +13,6 @@ paths.php
 plugins/Coins
 plugins/ExhibitBuilder
 plugins/SimplePages
-plugins/TeiDisplay
 plugins/index.html
 plugins/tei-samples
 themes/default
