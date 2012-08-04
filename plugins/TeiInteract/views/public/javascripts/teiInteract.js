@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    $("p").hover(
+    $(".person-name").hover(
         function (event) {
             var $target = event.target;
             
