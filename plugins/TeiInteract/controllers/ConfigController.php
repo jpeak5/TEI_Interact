@@ -10,7 +10,7 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
 
 //        $this->view->files = $this->getTeiFiles();
         $records = $this->getTeiFiles();
-
+        debug("found ".count($records)." files");
 
         $this->view->records = $records;
 
