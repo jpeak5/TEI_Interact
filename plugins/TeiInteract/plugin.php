@@ -71,7 +71,16 @@ class TeiInteract extends Omeka_Plugin_Abstract {
 	       PRIMARY KEY  (`id`)
 	       ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
 
-
+            $namesTable = "CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_names` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `file_id` int(10) unsigned DEFAULT NULL,
+  `type` varchar(25) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `value` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `teiHeader` tinyint(4) NOT NULL COMMENT 'whether or not this name appears in the header or in the main text...1 for header, 0 for text',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+            $db->exec($namesTable);
+            
             //repopulate the tei_interact_config_table with existing TEI datastreams from Fedora if FedoraConnector is installed
             //change datastream from 'TEI' to another string, if applicable
             if (function_exists('fedora_connector_installed')) {
