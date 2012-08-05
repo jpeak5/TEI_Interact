@@ -45,13 +45,13 @@ class TeiInteract_ListController extends Omeka_Controller_Action {
         foreach ($headElements as $element) {
             if (!in_array($element->nodeName, $tags['head'])) {
                 $tags['head'][] = $element->nodeName;
-                _log("found element " . $element->nodeName);
+//                _log("found element " . $element->nodeName);
             }
         }
         foreach ($textElements as $element) {
             if (!in_array($element->nodeName, $tags['text'])) {
                 $tags['text'][] = $element->nodeName;
-                _log("found element " . $element->nodeName);
+//                _log("found element " . $element->nodeName);
             }
         }
         debug("text tags count = " . count($tags['text']));
