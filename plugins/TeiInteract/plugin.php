@@ -38,11 +38,9 @@ class TeiInteract extends Omeka_Plugin_Abstract {
      */
     public function hookPublicThemeHeader($request) {
 
-        if ($item) {
-            $item = get_current_item();
-            debug("injecting TeiInteract jQuery");
+        
             echo js('teiInteract');
-        }
+
     }
 
     /**
