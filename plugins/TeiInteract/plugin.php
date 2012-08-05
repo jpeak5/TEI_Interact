@@ -124,7 +124,11 @@ class TeiInteract extends Omeka_Plugin_Abstract {
     function hookUninstall() {
         $db = get_db();
         $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_configs`";
-        debug('dropping table' . $db->prefix);
+        debug('dropping table ' . $db->prefix).'tei_interact_configs';
+        $db->query($sql);
+        
+        $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_names`";
+        debug('dropping table ' . $db->prefix).'tei_interact_names';
         $db->query($sql);
 
         //delete options, if exist
