@@ -26,10 +26,9 @@ class TeiInteract extends Omeka_Plugin_Abstract {
      */
     protected $_hooks = array('install', 'initialize', 'public_theme_header', 'public_theme_body', 'uninstall', 'define_acl');
     protected $_filters = array('admin_navigation_main');
+
     public function hookInitialize() {
 //        debug('TeiInteract::hookInitialize()');
-        
-     
     }
 
     /**
@@ -38,9 +37,8 @@ class TeiInteract extends Omeka_Plugin_Abstract {
      */
     public function hookPublicThemeHeader($request) {
 
-        
-            echo js('teiInteract');
 
+        echo js('teiInteract');
     }
 
     /**
@@ -73,14 +71,15 @@ class TeiInteract extends Omeka_Plugin_Abstract {
 
             $namesTable = "CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_names` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `file_id` int(10) unsigned DEFAULT NULL,
-  `type` varchar(25) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `value` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `teiHeader` tinyint(4) NOT NULL COMMENT 'whether or not this name appears in the header or in the main text...1 for header, 0 for text',
+  `file_id` int(10) unsigned NOT NULL,
+  `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `value` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `teiHeader` tinyint(1) NOT NULL COMMENT 'whether or not this name appears in the header or in the main text...1 for header, 0 for text',
+  `occurrenceCount` int(5) NOT NULL COMMENT 'how many times does this name occur in the file',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=166 ;";
             $db->exec($namesTable);
-            
+
             //repopulate the tei_interact_config_table with existing TEI datastreams from Fedora if FedoraConnector is installed
             //change datastream from 'TEI' to another string, if applicable
             if (function_exists('fedora_connector_installed')) {
@@ -124,11 +123,11 @@ class TeiInteract extends Omeka_Plugin_Abstract {
     function hookUninstall() {
         $db = get_db();
         $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_configs`";
-        debug('dropping table ' . $db->prefix).'tei_interact_configs';
+        debug('dropping table ' . $db->prefix) . 'tei_interact_configs';
         $db->query($sql);
-        
+
         $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_names`";
-        debug('dropping table ' . $db->prefix).'tei_interact_names';
+        debug('dropping table ' . $db->prefix) . 'tei_interact_names';
         $db->query($sql);
 
         //delete options, if exist
@@ -141,8 +140,6 @@ class TeiInteract extends Omeka_Plugin_Abstract {
         //based on the small mod to the 'person-type' in component.xsl,
         //make a new XSL that preserves all TEI tags in similar fashion
     }
-
-
 
     function filterAdminNavigationMain($tabs) {
         if (get_acl()->checkUserPermission('TeiInteract_Config', 'index')) {
