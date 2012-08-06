@@ -36,7 +36,7 @@ class TeiInteractName extends Omeka_Record {
             debug("no value given");
             return false;
         }
-        debug("returning from _validate()");
+        
         return true;
     }
 
