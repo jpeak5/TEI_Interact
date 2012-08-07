@@ -19,6 +19,16 @@ class TeiInteractNameTable extends Omeka_Db_Table {
         }
         return false;
     }
+    
+    public function findSimilarNames($searchStr){
+        debug('begin findSimilarNames');
+        $searchStr = "%".$searchStr."%";
+        $result = $this->findBySQL("value like ?", array($searchStr));
+        
+        return !empty($result) ? $result : false;
+    }
+    
+    
 
 }
 
