@@ -92,7 +92,7 @@
 
 	<div class="description">
 	
-<p>Description of TeiInteract_hasNames</p>
+<p>Table mapping class for our names table</p>
 
 	</div>
 
@@ -135,24 +135,32 @@ Omeka_Record
 
 		<td class="attributes"><code>
 			 public 
-			
+			boolean
 			
 			</code>
 		</td>
 
 		<td class="name"><div>
 		<a class="anchor" href="#__validate">#</a>
-		<code><a href="source-class-TeiInteractName.html#28" title="Go to source code">_validate</a>( )</code>
+		<code><a href="source-class-TeiInteractName.html#45" title="Go to source code">_validate</a>( )</code>
 
 		<div class="description short">
 			
+<p>Make sure we submit legal values</p>
+
 		</div>
 
 		<div class="description detailed hidden">
 			
+<p>Make sure we submit legal values</p>
 
 
 
+
+				<h4>Returns</h4>
+				<div class="list">
+					<code>boolean</code><br />
+				</div>
 
 
 
@@ -171,14 +179,18 @@ Omeka_Record
 
 		<td class="name"><div>
 		<a class="anchor" href="#_beforeSave">#</a>
-		<code><a href="source-class-TeiInteractName.html#44" title="Go to source code">beforeSave</a>( )</code>
+		<code><a href="source-class-TeiInteractName.html#65" title="Go to source code">beforeSave</a>( )</code>
 
 		<div class="description short">
 			
+<p>validate before save</p>
+
 		</div>
 
 		<div class="description detailed hidden">
 			
+<p>validate before save</p>
+
 
 
 
@@ -203,7 +215,7 @@ Omeka_Record
 
 		<td class="attributes"><code>
 			public 
-			
+			integer
 		</code></td>
 
 		<td class="name">
@@ -215,10 +227,14 @@ Omeka_Record
 
 			<div class="description short">
 				
+<p>obligatory; primary key</p>
+
 			</div>
 
 			<div class="description detailed hidden">
 				
+<p>obligatory; primary key</p>
+
 
 			</div>
 		</div></td>
@@ -227,11 +243,11 @@ Omeka_Record
 
 		<td class="attributes"><code>
 			public 
-			
+			integer
 		</code></td>
 
 		<td class="name">
-				<a href="source-class-TeiInteractName.html#12" title="Go to source code"><var>$file_id</var></a>
+				<a href="source-class-TeiInteractName.html#16" title="Go to source code"><var>$file_id</var></a>
 		</td>
 		<td class="value"><code></code></td>
 		<td class="description"><div>
@@ -239,10 +255,14 @@ Omeka_Record
 
 			<div class="description short">
 				
+<p>id of a file in the files table</p>
+
 			</div>
 
 			<div class="description detailed hidden">
 				
+<p>id of a file in the files table</p>
+
 
 			</div>
 		</div></td>
@@ -251,11 +271,11 @@ Omeka_Record
 
 		<td class="attributes"><code>
 			public 
-			
+			string
 		</code></td>
 
 		<td class="name">
-				<a href="source-class-TeiInteractName.html#13" title="Go to source code"><var>$type</var></a>
+				<a href="source-class-TeiInteractName.html#21" title="Go to source code"><var>$type</var></a>
 		</td>
 		<td class="value"><code></code></td>
 		<td class="description"><div>
@@ -263,10 +283,14 @@ Omeka_Record
 
 			<div class="description short">
 				
+<p>this maps to the allowed values for TEI &lt;/name&gt;</p>
+
 			</div>
 
 			<div class="description detailed hidden">
 				
+<p>this maps to the allowed values for TEI &lt;/name&gt;</p>
+
 
 			</div>
 		</div></td>
@@ -275,11 +299,11 @@ Omeka_Record
 
 		<td class="attributes"><code>
 			public 
-			
+			string
 		</code></td>
 
 		<td class="name">
-				<a href="source-class-TeiInteractName.html#14" title="Go to source code"><var>$value</var></a>
+				<a href="source-class-TeiInteractName.html#26" title="Go to source code"><var>$value</var></a>
 		</td>
 		<td class="value"><code></code></td>
 		<td class="description"><div>
@@ -287,10 +311,14 @@ Omeka_Record
 
 			<div class="description short">
 				
+<p>the textual value of the name tag</p>
+
 			</div>
 
 			<div class="description detailed hidden">
 				
+<p>the textual value of the name tag</p>
+
 
 			</div>
 		</div></td>
@@ -303,7 +331,7 @@ Omeka_Record
 		</code></td>
 
 		<td class="name">
-				<a href="source-class-TeiInteractName.html#15" title="Go to source code"><var>$occurrenceCount</var></a>
+				<a href="source-class-TeiInteractName.html#32" title="Go to source code"><var>$occurrenceCount</var></a>
 		</td>
 		<td class="value"><code><span class="php-num">1</span></code></td>
 		<td class="description"><div>
@@ -311,10 +339,16 @@ Omeka_Record
 
 			<div class="description short">
 				
+<p>number of times this string has been tagged with the same type in this
+file</p>
+
 			</div>
 
 			<div class="description detailed hidden">
 				
+<p>number of times this string has been tagged with the same type in this
+file</p>
+
 
 			</div>
 		</div></td>
@@ -327,7 +361,7 @@ Omeka_Record
 		</code></td>
 
 		<td class="name">
-				<a href="source-class-TeiInteractName.html#17" title="Go to source code"><var>$teiHeader</var></a>
+				<a href="source-class-TeiInteractName.html#39" title="Go to source code"><var>$teiHeader</var></a>
 		</td>
 		<td class="value"><code></code></td>
 		<td class="description"><div>
