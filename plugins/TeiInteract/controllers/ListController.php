@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package TeiInteract 
+ */
 class TeiInteract_ListController extends Omeka_Controller_Action {
 
     public function inspectAction() {

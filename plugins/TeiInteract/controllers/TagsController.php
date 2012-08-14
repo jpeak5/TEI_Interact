@@ -1,16 +1,32 @@
 <?php
 
 /**
- * Description of TagsController
+ * 
  *
  * @author jpeak5
+ * @package TeiInteract 
  */
 class TeiInteract_TagsController extends Omeka_Controller_Action {
 
-    //put your code here
+    /**
+     * 
+     * @var boolean Whether or not to output debug messages from this class
+     */
     private $debug = true;
+
+    /**
+     *
+     * @var int id of a file in the files db table
+     */
     public $file_id;
 
+    /**
+     * Cotnroller for the @link "http://literati.cct.lsu.edu/omeka/admin/tei-interact/tags/browse" action
+     * required arguments in the query string are 
+     * @var string $tag - the tag name that we are working with...name, for instance
+     * @var int $id - the file id that we are concerned with; must correspond to a file in the files table
+     * @var string $section - whether this is in the TEI Header or not
+     */
     public function browseAction() {
 
         //get the File from the db
@@ -42,7 +58,12 @@ class TeiInteract_TagsController extends Omeka_Controller_Action {
         $this->view->types = $types;
     }
 
-    public function getNames(SimpleXMLElement $xml) {
+    /**
+     * 
+     * @param SimpleXMLElement $xml
+     * @return string
+     */
+    private function getNames(SimpleXMLElement $xml) {
 
         debug('begin getNames SimpleXML routine');
         $types = array('untyped' => array());

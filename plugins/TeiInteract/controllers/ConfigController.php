@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package TeiInteract 
+ */
 class TeiInteract_ConfigController extends Omeka_Controller_Action {
 
     public function browseAction() {

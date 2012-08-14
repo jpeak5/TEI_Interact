@@ -4,6 +4,7 @@
  * Description of TeiInteract_hasNames
  *
  * @author jpeak5
+ * @package TeiInteract 
  */
 class TeiInteractName extends Omeka_Record {
 
