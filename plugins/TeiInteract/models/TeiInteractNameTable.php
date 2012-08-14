@@ -1,16 +1,12 @@
 <?php
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * subclassing Omeka_Db_Table in order
  *  to create som ecustom queries beyond those
  * available in the Omeka_Record
  *
  * @author jpeak5
+ * @package TeiInteract 
  */
 class TeiInteractNameTable extends Omeka_Db_Table {
 

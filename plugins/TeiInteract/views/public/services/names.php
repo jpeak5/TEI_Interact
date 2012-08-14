@@ -1,12 +1,10 @@
 <?php
 
-//debug('begin view');
-
-
 /**
  * we are given the database result(s) for things that are similar to the 
  * item the user is hovering over.
  * Iterate over those and accumulate a block of markup in $buffer
+ * @package TeiInteract 
  */
 $buffer = "";
 $thing = "<div class=\"thing-content\">";

@@ -1,14 +1,10 @@
 <?php
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- * Description of TeiInteractionsController
+ * Empty Controller
  *
  * @author jpeak5
+ * @package TeiInteract 
  */
 class TeiInteractionsController extends Omeka_Controller_Action{
     

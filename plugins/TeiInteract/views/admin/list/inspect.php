@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package TeiInteract 
+ */
 head(array('title' => 'TEI Interact Tags', 'textclass' => 'primary', 'content_class' => 'horizontal-nav'));
 ?>
 <h1>TEI Interact</h1>

@@ -2,6 +2,7 @@
  * When the user hovers over something tagged as 'thing',
  * send the textual content of the tag back to the script to 
  * be used as a paramenter in a db query for related items
+ * @package TeiInteract 
  */
 $(document).ready(function(){
     $(".name").hover(

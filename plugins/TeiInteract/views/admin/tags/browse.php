@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package TeiInteract 
+ */
 head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'content_class' => 'horizontal-nav'));
 ?>
 <h1>TEI Interact</h1>
@@ -10,11 +13,6 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
     if (!empty($err)) {
         echo '<p class="error">' . html_escape($err) . '</p>';
     }
-
-
-
-
-
 
     if (!$tags) {
         echo "<h2>Tag not found in File</h2>";
