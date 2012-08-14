@@ -4,9 +4,14 @@
  */
 class TeiInteract_ListController extends Omeka_Controller_Action {
 
+    /**
+     * This method probably does too much.
+     * Gets a reference to an xml (presumably TEI) file and parses its tags
+     * looking for something interesting.
+     * Passes all found tags to the view.
+     * 
+     */
     public function inspectAction() {
-//        $db = get_db();
-//        $currentPage = $this->_getParam('page', 1);
 
         $db = get_db();
         $id = $this->_getParam('id');
@@ -62,21 +67,13 @@ class TeiInteract_ListController extends Omeka_Controller_Action {
 
         $this->view->record = $record;
 
-//        /**
-//         * Now process the pagination
-//         * 
-//         * */
-//        $paginationUrl = $this->getRequest()->getBaseUrl() . '/config/browse/';
-//
-//        //Serve up the pagination
-//        $pagination = array('page' => $currentPage,
-//            'per_page' => 20,
-//            'total_results' => $count,
-//            'link' => $paginationUrl);
-//
-//        Zend_Registry::set('pagination', $pagination);
     }
-
+    
+    /**
+     * Get all records from the files db table where the mime_browser field = app/xml
+     * @TODO This is duplicated in other controllers; perhaps it should be a utility method.
+     * @return File|boolean
+     */
     private function getTeiFiles() {
         $db = get_db();
         $files = $db->getTable('File')->findBySql('mime_browser = ?', array('application/xml'));
@@ -86,14 +83,6 @@ class TeiInteract_ListController extends Omeka_Controller_Action {
             return false;
         }
 
-//        $xp = new XsltProcessor();
-//        $xp->registerPHPFunctions();
-//        $xp->importStylesheet('libraries' . DIRECTORY_SEPARATOR . 'teiInteract_default.xsl');
-//        if (file_put_contents('files' . DIRECTORY_SEPARATOR . 'output.txt', $xp->transformToXml($dom))) {
-//            debug("file written");
-//        } else {
-//            debug('file write failure');
-//        }
     }
 
 }
