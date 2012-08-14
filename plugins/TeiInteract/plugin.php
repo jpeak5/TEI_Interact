@@ -6,13 +6,14 @@
  * We intend to extend the functionality provided by the Scholar's Lab TeiDisplay plugin
  * @package TeiInteract 
  */
-
+/**
+ * a dummy test CONSTANT
+ */
 define('TEI_INTERACT_TEST', 'this is only a test');
 
 use \Omeka_Record;
 
 /**
- * 
  * 
  * This class is the main script for the plugin as desribed in 
  * @link http://omeka.org/codex/Plugin_Writing_Best_Practices The Omeka Plugins-writing best practices
@@ -26,14 +27,22 @@ class TeiInteract extends Omeka_Plugin_Abstract {
      * @var string[] the set of hooks that this plugin uses
      */
     protected $_hooks = array('install', 'initialize', 'public_theme_header', 'public_theme_body', 'uninstall', 'define_acl');
+
+    /**
+     *
+     * @var string[] the aset of filters we are implementing
+     */
     protected $_filters = array('admin_navigation_main');
 
+    /**
+     * this does nothing
+     */
     public function hookInitialize() {
 //        debug('TeiInteract::hookInitialize()');
     }
 
     /**
-     *
+     * inject some javascript and (maybe soon) somem of Derick's CSS and the THING itself
      * @param type $request 
      */
     public function hookPublicThemeHeader($request) {
@@ -43,13 +52,17 @@ class TeiInteract extends Omeka_Plugin_Abstract {
     }
 
     /**
-     *
+     * Insert something into the theme body
      * @param type $request 
      */
     public function hookPublicThemeBody($request) {
         
     }
 
+    /**
+     * Do things when the user clicks install, like build DB tables, etc
+     * @throws Exception
+     */
     function hookInstall() {
         $db = get_db();
         if (!class_exists('XSLTProcessor')) {
@@ -120,7 +133,11 @@ class TeiInteract extends Omeka_Plugin_Abstract {
             }
         }
     }
-
+    
+    
+    /**
+     * when the user deletes us from Omeka, cleanup after ourselves by DROPPING or db tables, etc
+     */
     function hookUninstall() {
         $db = get_db();
         $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_configs`";
@@ -134,6 +151,10 @@ class TeiInteract extends Omeka_Plugin_Abstract {
         //delete options, if exist
     }
 
+    /**
+     * Do things after an item has been saved
+     * @param type $item
+     */
     public function hookAfterSaveItem($item) {
         debug("calling from the TeiInteract AfterSaveItem() hook");
         //store keywords (aka TEI-tagged things) in the db
@@ -141,7 +162,12 @@ class TeiInteract extends Omeka_Plugin_Abstract {
         //based on the small mod to the 'person-type' in component.xsl,
         //make a new XSL that preserves all TEI tags in similar fashion
     }
-
+    
+    /**
+     * 
+     * @param string[] $tabs  An array of label => URI pairs. 
+     * @return string[] An array of label => URI pairs.
+     */
     function filterAdminNavigationMain($tabs) {
         if (get_acl()->checkUserPermission('TeiInteract_Config', 'index')) {
             $tabs['TEI Interact'] = uri('tei-interact/config/');
@@ -149,6 +175,14 @@ class TeiInteract extends Omeka_Plugin_Abstract {
         return $tabs;
     }
 
+    
+    /**
+     * 
+     * This hook runs when Omeka's ACL is instantiated. 
+     * It allows plugin writers to manipulate the ACL that controls user access in Omeka.
+     * In general, plugins use this hook to restrict and/or allow access for specific user roles to the pages that it creates. 
+     * @param Zend_Acl $acl The ACL object (a subclass of Zend_Acl)
+     */
     function hookDefineAcl($acl) {
         $acl->loadResourceList(array('TeiInteract_Config' => array('browse', 'status')));
     }
