@@ -6,6 +6,7 @@
  * We intend to extend the functionality provided by the Scholar's Lab TeiDisplay plugin
  * @package TeiInteract 
  */
+
 define('TEI_INTERACT_TEST', 'this is only a test');
 
 use \Omeka_Record;
