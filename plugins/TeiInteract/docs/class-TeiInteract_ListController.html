@@ -139,10 +139,18 @@ Omeka_Controller_Action
 
 		<div class="description short">
 			
+<p>This method probably does too much. Gets a reference to an xml (presumably
+TEI) file and parses its tags looking for something interesting. Passes all
+found tags to the view.</p>
+
 		</div>
 
 		<div class="description detailed hidden">
 			
+<p>This method probably does too much. Gets a reference to an xml (presumably
+TEI) file and parses its tags looking for something interesting. Passes all
+found tags to the view.</p>
+
 
 
 
@@ -157,26 +165,40 @@ Omeka_Controller_Action
 
 		<td class="attributes"><code>
 			 private 
-			
+			File|boolean
 			
 			</code>
 		</td>
 
 		<td class="name"><div>
 		<a class="anchor" href="#_getTeiFiles">#</a>
-		<code><a href="source-class-TeiInteract_ListController.html#80" title="Go to source code">getTeiFiles</a>( )</code>
+		<code><a href="source-class-TeiInteract_ListController.html#72" title="Go to source code">getTeiFiles</a>( )</code>
 
 		<div class="description short">
 			
+<p>Get all records from the files db table where the mime_browser field =
+app/xml</p>
+
 		</div>
 
 		<div class="description detailed hidden">
 			
+<p>Get all records from the files db table where the mime_browser field =
+app/xml</p>
 
 
 
 
+				<h4>Returns</h4>
+				<div class="list">
+					<code>File|boolean</code><br />
+				</div>
 
+
+				<h4>TODO</h4>
+				<div class="list">
+						This is duplicated in other controllers; perhaps it should be a utility method.<br />
+				</div>
 
 
 		</div>

@@ -1,6 +1,7 @@
 <?php
 /**
  * @package TeiInteract 
+ * render a list of TEI files
  */
 head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'content_class' => 'horizontal-nav'));
 ?>
