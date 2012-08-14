@@ -1,7 +1,8 @@
 <?php
 /**
- * @package TeiInteract 
  * This class encapsulates functionality for responding to AJAX-type requests from the user
+ * @package TeiInteract 
+ * 
  */
 class TeiInteract_ServicesController extends Omeka_Controller_Action {
 

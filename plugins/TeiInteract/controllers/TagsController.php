@@ -1,7 +1,7 @@
 <?php
 
 /**
- * 
+ * lookup and display the text for tags categorized by type
  *
  * @author jpeak5
  * @package TeiInteract 

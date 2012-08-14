@@ -1,7 +1,8 @@
 <?php
 /**
- * @package TeiInteract
  * Main front-most controller for the TeiInteract plugin
+ * @package TeiInteract
+ * 
  */
 class TeiInteract_ConfigController extends Omeka_Controller_Action {
 
