@@ -31,11 +31,13 @@ class TeiInteract_TagsController extends Omeka_Controller_Action {
 
         //get the File from the db
         $db = get_db();
-        $tag = $this->_getParam('tag');
         $this->file_id = $this->_getParam('id');
+        $file = $db->getTable('File')->find($this->file_id);
+
+        $tag = $this->_getParam('tag');
         $section = $this->_getParam('section');
 
-        $file = $db->getTable('File')->find($this->file_id);
+
         $this->view->file_id = $file_id;
 
 
@@ -50,100 +52,130 @@ class TeiInteract_TagsController extends Omeka_Controller_Action {
 
         if ($tag == 'name') {
             $xml = new SimpleXMLElement(file_get_contents($path));
-            $types = $this->getNames($xml);
+            $nameObjs = $this->parseNames($xml);
         }
 
         $this->view->tag = $tag;
         $this->view->tags = $tagElements;
-        $this->view->types = $types;
+        $this->view->types = $nameObjs;
     }
 
     /**
      * 
      * @param SimpleXMLElement $xml
-     * @return string
+     * @return TeiInteractName[]
      */
-    private function getNames(SimpleXMLElement $xml) {
+    private function parseNames(SimpleXMLElement $xml) {
 
         debug('begin getNames SimpleXML routine');
         $types = array('untyped' => array());
-        $nameAncestors = array('text', 'teiHeader');
+        $sections = array('text', 'teiHeader');
+        $nameObjs = array();
 
-        foreach ($nameAncestors as $ancestor) {
-            foreach ($xml->xpath("{$ancestor}//name") as $name) {
+        foreach ($sections as $section) {
+            foreach ($xml->xpath("{$section}//name") as $name) {
                 if (strlen($name) > 0) {
+                    $nameObj = new TeiInteractName();
+                    $nameObj->value = $name;
+                    $nameObj->file_id = $this->file_id;
+                    $nameObj->teiHeader = $section == 'teiHeader' ? 1 : 0;
 
                     if ($name['type']) {
-                        $typeName = (String) $name['type'];
+                        $nameObj->type = (String) $name['type'];
 
-                        if (!array_key_exists($typeName, $types)) {
+                        if (!array_key_exists($nameObj->type, $types)) {
 
-                            $types[$typeName] = array();
+                            $types[$nameObj->type] = array();
                         }
                     } else {
-                        $typeName = 'untyped';
+                        $nameObj->type = 'untyped';
                     }
-                    //clean up the text, accounting for possesive forms...
-                    if(substr($name, strlen($name)-2)=="'s"){
-                        $clnName = substr($name, 0,strlen($name)-2);
-                        _log("cleaning ". $name . " to ". $clnName);
-                        $name = $clnName;
+//clean up the text, accounting for possesive forms...
+                    if (substr($nameObj->value, strlen($nameObj->value) - 2) == "'s") {
+                        $clnName = substr($nameObj->value, 0, strlen($nameObj->value) - 2);
+                        _log("cleaning " . $nameObj->value . " to " . $clnName);
+                        $nameObj->value = $clnName;
                     }
-                    
-                    if (!array_key_exists((string) $name, $types[$typeName])) {
-                        $types[$typeName][(string) $name] = array('count' => 1, 'ancestor' => $ancestor);
+
+                    if (!array_key_exists($nameObj->value, $types[$nameObj->type])) {
+                        $nameObjs[] = $nameObj;
                     } else {
-                        $types[$typeName][(string) $name]['count']++;
+                        foreach ($nameObjs as $no) {
+                            if (!namesDiffer($nameObj, $no)) {
+                                $no->occurrenceCount++;
+                            }
+                        }
+
 //                    if ($this->debug)debug("duplicate entry, updating the counter");
                     }
                 }
             }
+        }
+        return $nameObjs;
+    }
+
+    private function createNames($names) {
+        $db = get_db();
+        $table = $db->getTable('TeiInteractName');
+        $count = 0;
+
+        foreach ($names as $name) {
+
+            if ($name->value == null) {
+                debug('yikes, no value here!');
+            }
+
+            $name->_validate();
 
 
-
-
-            foreach ($types as $type => $values) {
-//                   if ($this->debug) debug("----Type = " . $type);
-
-
-                foreach ($values as $value => $attrs) {
-
-                    $record = new TeiInteractName();
-                    $record->file_id = (int) $this->file_id;
-                    $record->type = $type;
-                    $record->value = $value;
-                    if ($record->value == null) {
-                        debug('yikes, no value here!');
+            if (!$table->recordExists($name->file_id, $name->value, $name->type)) {
+                if ($name->save()) {
+                    $this->flashSuccess("name instances saved to db");
+                    $count++;
+                } else {
+                    if ($name->hasErrors()) {
+                        debug('record has ERRORS');
                     }
-                    $record->teiHeader = $attrs['ancestor'] == 'text' ? 0 : 1;
-                    $record->occurrenceCount = $attrs['count'];
-                    $record->_validate();
-                    $db = get_db();
-                    $table = $db->getTable('TeiInteractName');
-                    $exists = $table->recordExists($record->file_id, $record->value, $record->type);
-                    if (!$exists) {
-//                        debug('record exists ?'.$exists);
-//                if ($this->debug)debug("attempt to save record with values: " . $record->file_id . $record->type . $record->value . $record->teiHeader);
-                        if ($record->save()) {
-//                    if ($this->debug) debug("record save success");
-                            $this->flashSuccess("name instances saved to db");
-                        } else {
-                            if ($record->hasErrors()) {
-                                debug('record has ERRORS');
-                            }
 
-                            if ($this->debug)
-                                debug("record save FAIL!");
-                        }
-                    }else {
-//                        debug('record already exists(id=' . $exists->id . '): not saving duplicate record');
-                    }
-//                    if ($this->debug) debug("-----------" . $name . " count= " . $attrs['count']);
+                    if ($this->debug)
+                        debug("record save FAIL!");
                 }
+            }else {
+//                        debug('record already exists(id=' . $exists->id . '): not saving duplicate record');
             }
         }
+        return $count;
+    }
 
-        return $types;
+    private static function namesDiffer(TeiInteractName $n1, TeiInteractName $n2) {
+        $mismatch = 0;
+        $mismatch += $type = ($n1->type == $n2->type) ? 0 : 1;
+        $mismatch += $teiHeader = ($n1->teiHeader == $n2->teiHeader) ? 0 : 1;
+        $mismatch += $value = ($n1->value == $n2->value) ? 0 : 1;
+        $mismatch += $file = ($n1->file_id == $n2->file_id) ? 0 : 1;
+        return $mismatch;
+    }
+
+    public function harvestAction() {
+        //get the File from the db
+        $db = get_db();
+        $this->file_id = $this->_getParam('id');
+        $file = $db->getTable('File')->find($this->file_id);
+        _log("from harvest action handler, we are going to work with file id = ".$this->file_id);
+        
+        
+        $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR . $file->getStoragePath('archive');
+        $xml = new SimpleXMLElement(file_get_contents($path));
+        _log('loading xml from ' . $path);
+        
+        $count = $this->createNames($this->parseNames($xml));
+        _log("created ".$count ." records for file ".$this->file_id);
+        /**
+         * @TODO this is a hack; check the docs for a cleaner solution
+         * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
+         */
+         $this->redirect->gotoURL('tei-interact/list/inspect?id='.$this->file_id);
+        
     }
 
 }
