@@ -20,14 +20,25 @@ head(array('title' => 'TEI Interact Tags', 'textclass' => 'primary', 'content_cl
 
     <?php if (!$record) { ?>
         <h2>File not found!</h2>
-    <?php } else { ?>
+    <?php } else { 
+        $file = $record['file'];
+        
+        echo "<p>".$dbCount . " records exist in the DB for this item";
+        
+        if($dbCount == 0){
+            
+            echo " -- <a href=\"" . html_escape(uri('tei-interact/files/harvest', array('id' => $file->id))) . "\">populate DB</a></p>";
+        }else{
+            echo "</p>";
+        }
+        ?>
         <ul>
             
                 <li>
 
 
                     <?php
-                    $file = $record['file'];
+                    
                     $tags = $record['tags'];
 //                    sort($tags, SORT_STRING);
                     $item = item('Dublin Core', 'Title', $options, $file->getItem());
@@ -38,7 +49,7 @@ head(array('title' => 'TEI Interact Tags', 'textclass' => 'primary', 'content_cl
                     $headTags = $tags['head'];
                     sort($headTags);
                     for ($i = 0; $i < count($headTags); $i++) {
-                        $link = " <a href=\"" . html_escape(uri('tei-interact/tags/browse', array('id' => $file->id,'tag' => $headTags[$i], 'section'=>'teiHeader'))) . "\" class=\"inspect\">".$headTags[$i]."</a>";
+                        $link = " <a href=\"" . html_escape(uri('tei-interact/files/tag', array('id' => $file->id,'tag' => $headTags[$i], 'section'=>'teiHeader'))) . "\" class=\"inspect\">".$headTags[$i]."</a>";
                         echo $link;
 //                        debug("built link:" . $link);
                         if ($i != count($headTags) - 1) {
@@ -56,7 +67,7 @@ head(array('title' => 'TEI Interact Tags', 'textclass' => 'primary', 'content_cl
                     
                     
                     for ($i = 0; $i < count($textTags); $i++) {
-                        $link = " <a href=\"" . html_escape(uri('tei-interact/tags/browse', array('id' => $file->id,'tag' => $textTags[$i], 'section'=>'text'))) . "\" class=\"inspect\">".$textTags[$i]."</a>";
+                        $link = " <a href=\"" . html_escape(uri('tei-interact/files/tag', array('id' => $file->id,'tag' => $textTags[$i], 'section'=>'text'))) . "\" class=\"inspect\">".$textTags[$i]."</a>";
                         echo $link;
                         if ($i != count($textTags) - 1) {
                             echo ", ";

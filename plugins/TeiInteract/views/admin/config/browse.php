@@ -2,6 +2,7 @@
 /**
  * @package TeiInteract 
  * render a list of TEI files
+ * @deprecated this view for the config action is ill-name and has been replacd by the more apt 'files/browse'
  */
 head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'content_class' => 'horizontal-nav'));
 ?>
@@ -12,39 +13,14 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
     <?php
     if (!empty($err)) {
         echo '<p class="error">' . html_escape($err) . '</p>';
+    }else{
+        echo "go to  ";
+        echo " <a href=\"" . html_escape(uri('tei-interact/files/browse'))."\">files list</a>";
     }
     ?>
-    <?php // print_r(get_defined_vars()); ?>
+    
 
-
-
-
-    <?php if (!$records) { ?>
-        <h2>No Files found on the system!</h2>
-    <?php } else { ?>
-        <h2>TEI files</h2>
-        <ul>
-            <?php foreach ($records as $file): ?>
-                <li>
-
-
-                    <?php
-//                    sort($tags, SORT_STRING);
-                    $item = item('Dublin Core', 'Title', $options, $file->getItem());
-                    $web = $file->getWebPath('archive');
-                    $file_id = $file->id;
-//                    print_r($file);
-                    debug('file id = ' . $file_id);
-                    echo "<strong>" . $item . "</strong> - ".$file->original_filename."<br/>";
-                    echo "<a href=\"" . $web . "\">View in Browser</a>";
-                    echo " <a href=\"" . html_escape(uri('tei-interact/list/inspect', array('id' => $file_id))) . "\" class=\"inspect\">Inspect TEI Tags</a>";
-                    ?>
-
-                </li>
-
-    <?php endforeach; ?>
-        </ul>
-        <?php } ?>
+        
     <?php
     foot();
     ?>

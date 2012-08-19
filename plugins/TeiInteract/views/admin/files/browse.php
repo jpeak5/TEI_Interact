@@ -35,9 +35,10 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
                     $file_id = $file->id;
 //                    print_r($file);
                     debug('file id = ' . $file_id);
-                    echo "<strong>" . $item . "</strong> - ".$file->original_filename."<br/>";
-                    echo "<a href=\"" . $web . "\">View in Browser</a>";
-                    echo " <a href=\"" . html_escape(uri('tei-interact/list/inspect', array('id' => $file_id))) . "\" class=\"inspect\">Inspect TEI Tags</a>";
+                    echo "<strong>" . $item . "</strong> - ".$file->original_filename;
+                    echo " <a href=\"" . $web . "\">View in Browser</a><br/>";
+                    
+                    echo " <a href=\"" . html_escape(uri('tei-interact/files/tags', array('id' => $file_id))) . "\" class=\"inspect\">Inspect TEI Tags</a>";
                     ?>
 
                 </li>
