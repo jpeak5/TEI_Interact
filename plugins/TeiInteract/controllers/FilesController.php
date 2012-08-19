@@ -8,34 +8,6 @@
 class TeiInteract_FilesController extends Omeka_Controller_Action {
 
     /**
-     * User has requested to browse the available TEI files on the system.
-     * Get them and pass them to the view.
-     */
-    public function browseAction() {
-
-        $records = $this->getTeiFiles();
-        debug("found " . count($records) . " files");
-
-        $this->view->records = $records;
-    }
-
-    /**
-     * Get TEI files from the files table by mime type.
-     * @return File|boolean
-     */
-    private function getTeiFiles() {
-        $db = get_db();
-        $files = $db->getTable('File')->findBySql('mime_browser = ?', array('application/xml'));
-        if ($files) {
-            return $files;
-        } else {
-            return false;
-        }
-    }
-    
-
-
-    /**
      * 
      * @var boolean Whether or not to output debug messages from this class
      */
@@ -46,6 +18,16 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
      * @var int id of a file in the files db table
      */
     public $file_id;
+
+    /**
+     * User has requested to browse the available TEI files on the system.
+     * Get them and pass them to the view.
+     */
+    public function browseAction() {
+
+        $records = $this->getFiles();
+        $this->view->records = $records;
+    }
 
     /**
      * Cotnroller for the @link "http://literati.cct.lsu.edu/omeka/admin/tei-interact/tags/browse" action
@@ -85,6 +67,107 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $this->view->tag = $tag;
         $this->view->tags = $tagElements;
         $this->view->types = $nameObjs;
+    }
+
+    /**
+     * This method probably does too much.
+     * Gets a reference to an xml (presumably TEI) file and parses its tags
+     * looking for something interesting.
+     * Passes all found tags to the view.
+     * 
+     */
+    public function tagsAction() {
+
+        $db = get_db();
+
+        $id = $this->_getParam('id');
+        $file = $db->getTable('File')->find($id);
+        $this->view->id = $id;
+
+        $table = $db->getTable('TeiInteractName');
+        $this->view->dbCount = $table->fileRecordsExist($id);
+
+        $tags = array();
+        $xml = new DOMDocument();
+        $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR . $file->getStoragePath('archive');
+        _log('attempting to load xml from ' . $path);
+        $xml->loadXML(file_get_contents($path));
+//            $elements = $xml->getElementsByTagName('*');
+        $headList = $xml->getElementsByTagName('teiHeader');
+        if ($headList->length !== 1) {
+            debug("too many teiHeader nodes in the document");
+        } else {
+            $head = $headList->item(0);
+            debug("shifting one node out of NodeList");
+        }
+
+        $textList = $xml->getElementsByTagName('text');
+        if ($textList->length !== 1) {
+            debug("too many teiHeader nodes in the document");
+        } else {
+            $text = $textList->item(0);
+            debug("shifting one node out of NodeList");
+            debug("\$text class is " . get_class($text));
+        }
+
+        $headElements = $head->getElementsByTagName('*');
+        $textElements = $text->getElementsByTagName('*');
+
+        $tags = array('head' => array(), 'text' => array());
+
+
+        foreach ($headElements as $element) {
+            if (!in_array($element->nodeName, $tags['head'])) {
+                $tags['head'][] = $element->nodeName;
+//                _log("found element " . $element->nodeName);
+            }
+        }
+        foreach ($textElements as $element) {
+            if (!in_array($element->nodeName, $tags['text'])) {
+                $tags['text'][] = $element->nodeName;
+//                _log("found element " . $element->nodeName);
+            }
+        }
+        debug("text tags count = " . count($tags['text']));
+        debug("head tags count = " . count($tags['head']));
+        $record = array('file' => $file, 'tags' => $tags);
+
+        $this->view->record = $record;
+    }
+
+    public function harvestAction() {
+        //get the File from the db
+        $db = get_db();
+        $this->file_id = $this->_getParam('id');
+        $file = $db->getTable('File')->find($this->file_id);
+        _log("from harvest action handler, we are going to work with file id = " . $this->file_id);
+
+
+        $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR . $file->getStoragePath('archive');
+        $xml = new SimpleXMLElement(file_get_contents($path));
+        _log('loading xml from ' . $path);
+
+        $count = $this->createNames($this->parseNames($xml));
+        _log("created " . $count . " records for file " . $this->file_id);
+        /**
+         * @TODO this is a hack; check the docs for a cleaner solution
+         * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
+         */
+        $this->redirect->gotoURL('tei-interact/list/inspect?id=' . $this->file_id);
+    }
+
+    /**
+     * Get TEI files from the files table by mime type.
+     * @return File|boolean
+     */
+    private function getFiles() {
+        $db = get_db();
+        $files = $db->getTable('File')->findBySql('mime_browser = ?', array('application/xml'));
+        if ($files) {
+            return $files;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -182,94 +265,5 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $mismatch += $file = ($n1->file_id == $n2->file_id) ? 0 : 1;
         return $mismatch;
     }
-
-    public function harvestAction() {
-        //get the File from the db
-        $db = get_db();
-        $this->file_id = $this->_getParam('id');
-        $file = $db->getTable('File')->find($this->file_id);
-        _log("from harvest action handler, we are going to work with file id = " . $this->file_id);
-
-
-        $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR . $file->getStoragePath('archive');
-        $xml = new SimpleXMLElement(file_get_contents($path));
-        _log('loading xml from ' . $path);
-
-        $count = $this->createNames($this->parseNames($xml));
-        _log("created " . $count . " records for file " . $this->file_id);
-        /**
-         * @TODO this is a hack; check the docs for a cleaner solution
-         * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
-         */
-        $this->redirect->gotoURL('tei-interact/list/inspect?id=' . $this->file_id);
-    }
-
-    /**
-     * This method probably does too much.
-     * Gets a reference to an xml (presumably TEI) file and parses its tags
-     * looking for something interesting.
-     * Passes all found tags to the view.
-     * 
-     */
-    public function tagsAction() {
-
-        $db = get_db();
-
-        $id = $this->_getParam('id');
-        $file = $db->getTable('File')->find($id);
-        $this->view->id = $id;
-
-        $table = $db->getTable('TeiInteractName');
-        $this->view->dbCount = $table->fileRecordsExist($id);
-
-        $tags = array();
-        $xml = new DOMDocument();
-        $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR . $file->getStoragePath('archive');
-        _log('attempting to load xml from ' . $path);
-        $xml->loadXML(file_get_contents($path));
-//            $elements = $xml->getElementsByTagName('*');
-        $headList = $xml->getElementsByTagName('teiHeader');
-        if ($headList->length !== 1) {
-            debug("too many teiHeader nodes in the document");
-        } else {
-            $head = $headList->item(0);
-            debug("shifting one node out of NodeList");
-        }
-
-        $textList = $xml->getElementsByTagName('text');
-        if ($textList->length !== 1) {
-            debug("too many teiHeader nodes in the document");
-        } else {
-            $text = $textList->item(0);
-            debug("shifting one node out of NodeList");
-            debug("\$text class is " . get_class($text));
-        }
-
-        $headElements = $head->getElementsByTagName('*');
-        $textElements = $text->getElementsByTagName('*');
-
-        $tags = array('head' => array(), 'text' => array());
-
-
-        foreach ($headElements as $element) {
-            if (!in_array($element->nodeName, $tags['head'])) {
-                $tags['head'][] = $element->nodeName;
-//                _log("found element " . $element->nodeName);
-            }
-        }
-        foreach ($textElements as $element) {
-            if (!in_array($element->nodeName, $tags['text'])) {
-                $tags['text'][] = $element->nodeName;
-//                _log("found element " . $element->nodeName);
-            }
-        }
-        debug("text tags count = " . count($tags['text']));
-        debug("head tags count = " . count($tags['head']));
-        $record = array('file' => $file, 'tags' => $tags);
-
-        $this->view->record = $record;
-    }
-
-
 
 }
