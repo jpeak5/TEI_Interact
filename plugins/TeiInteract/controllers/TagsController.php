@@ -83,6 +83,13 @@ class TeiInteract_TagsController extends Omeka_Controller_Action {
                     } else {
                         $typeName = 'untyped';
                     }
+                    //clean up the text, accounting for possesive forms...
+                    if(substr($name, strlen($name)-2)=="'s"){
+                        $clnName = substr($name, 0,strlen($name)-2);
+                        _log("cleaning ". $name . " to ". $clnName);
+                        $name = $clnName;
+                    }
+                    
                     if (!array_key_exists((string) $name, $types[$typeName])) {
                         $types[$typeName][(string) $name] = array('count' => 1, 'ancestor' => $ancestor);
                     } else {
@@ -99,12 +106,12 @@ class TeiInteract_TagsController extends Omeka_Controller_Action {
 //                   if ($this->debug) debug("----Type = " . $type);
 
 
-                foreach ($values as $name => $attrs) {
+                foreach ($values as $value => $attrs) {
 
                     $record = new TeiInteractName();
                     $record->file_id = (int) $this->file_id;
                     $record->type = $type;
-                    $record->value = $name;
+                    $record->value = $value;
                     if ($record->value == null) {
                         debug('yikes, no value here!');
                     }
