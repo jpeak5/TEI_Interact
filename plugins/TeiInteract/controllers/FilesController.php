@@ -3,12 +3,12 @@
 /**
  * Main front-most controller for the TeiInteract plugin
  * @package TeiInteract
- * 
+ *
  */
 class TeiInteract_FilesController extends Omeka_Controller_Action {
 
     /**
-     * 
+     *
      * @var boolean Whether or not to output debug messages from this class
      */
     private $debug = true;
@@ -25,13 +25,13 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
      */
     public function browseAction() {
 
-        $records = $this->getFiles();
+        $records = $this->_getFiles();
         $this->view->records = $records;
     }
 
     /**
-     * Cotnroller for the @link "http://literati.cct.lsu.edu/omeka/admin/tei-interact/tags/browse" action
-     * required arguments in the query string are 
+     * Controller for the @link "http://literati.cct.lsu.edu/omeka/admin/tei-interact/tags/browse" action
+     * required arguments in the query string are
      * @var string $tag - the tag name that we are working with...name, for instance
      * @var int $id - the file id that we are concerned with; must correspond to a file in the files table
      * @var string $section - whether this is in the TEI Header or not
@@ -61,7 +61,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
 
         if ($tag == 'name') {
             $xml = new SimpleXMLElement(file_get_contents($path));
-            $nameObjs = $this->parseNames($xml);
+            $nameObjs = $this->_parseNames($xml);
         }
 
         $this->view->tag = $tag;
@@ -74,7 +74,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
      * Gets a reference to an xml (presumably TEI) file and parses its tags
      * looking for something interesting.
      * Passes all found tags to the view.
-     * 
+     *
      */
     public function tagsAction() {
 
@@ -147,7 +147,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $xml = new SimpleXMLElement(file_get_contents($path));
         _log('loading xml from ' . $path);
 
-        $count = $this->createNames($this->parseNames($xml));
+        $count = $this->_createNames($this->_parseNames($xml));
         _log("created " . $count . " records for file " . $this->file_id);
         /**
          * @TODO this is a hack; check the docs for a cleaner solution
@@ -160,7 +160,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
      * Get TEI files from the files table by mime type.
      * @return File|boolean
      */
-    private function getFiles() {
+    private function _getFiles() {
         $db = get_db();
         $files = $db->getTable('File')->findBySql('mime_browser = ?', array('application/xml'));
         if ($files) {
@@ -171,11 +171,11 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
     }
 
     /**
-     * 
+     *
      * @param SimpleXMLElement $xml
      * @return TeiInteractName[]
      */
-    private function parseNames(SimpleXMLElement $xml) {
+    private function _parseNames(SimpleXMLElement $xml) {
 
         debug('begin getNames SimpleXML routine');
         $types = array('untyped' => array());
@@ -211,7 +211,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                         $nameObjs[] = $nameObj;
                     } else {
                         foreach ($nameObjs as $no) {
-                            if (!namesDiffer($nameObj, $no)) {
+                            if (!self::n_amesDiffer($nameObj, $no)) {
                                 $no->occurrenceCount++;
                             }
                         }
@@ -224,7 +224,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         return $nameObjs;
     }
 
-    private function createNames($names) {
+    private function _createNames($names) {
         $db = get_db();
         $table = $db->getTable('TeiInteractName');
         $count = 0;
@@ -257,7 +257,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         return $count;
     }
 
-    private static function namesDiffer(TeiInteractName $n1, TeiInteractName $n2) {
+    private static function _namesDiffer(TeiInteractName $n1, TeiInteractName $n2) {
         $mismatch = 0;
         $mismatch += $type = ($n1->type == $n2->type) ? 0 : 1;
         $mismatch += $teiHeader = ($n1->teiHeader == $n2->teiHeader) ? 0 : 1;
