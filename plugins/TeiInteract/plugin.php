@@ -20,80 +20,108 @@ use \Omeka_Record;
  */
 class TeiInteract extends Omeka_Plugin_Abstract {
 
-    /**
-     * hooks array
-     * The hooks that you declare you are using in the $_hooks array must have a corresponding public method of the form hook{Hookname} as above. 
-     * @link http://omeka.org/codex/Plugin_Writing_Best_Practices Plugins Best-practices
-     * @var string[] the set of hooks that this plugin uses
-     */
-    protected $_hooks = array('install', 'initialize', 'public_theme_header', 'public_theme_body', 'uninstall', 'define_acl');
+/**
+ * hooks array
+ * The hooks that you declare you are using in the $_hooks array must have a corresponding public method of the form hook{Hookname} as above. 
+ * @link http://omeka.org/codex/Plugin_Writing_Best_Practices Plugins Best-practices
+ * @var string[] the set of hooks that this plugin uses
+ */
+protected $_hooks = array('install', 'initialize', 'public_theme_header', 'public_theme_body', 'uninstall', 'define_acl');
 
-    /**
-     *
-     * @var string[] the aset of filters we are implementing
-     */
-    protected $_filters = array('admin_navigation_main');
+/**
+ *
+ * @var string[] the aset of filters we are implementing
+ */
+protected $_filters = array('admin_navigation_main');
 
-    /**
-     * this does nothing
-     */
-    public function hookInitialize() {
+/**
+ * this does nothing
+ */
+public function hookInitialize() {
 //        debug('TeiInteract::hookInitialize()');
-    }
+}
 
-    /**
-     * inject some javascript and (maybe soon) somem of Derick's CSS and the THING itself
-     * @param type $request 
-     */
-    public function hookPublicThemeHeader($request) {
+/**
+ * inject some javascript and (maybe soon) somem of Derick's CSS and the THING itself
+ * @param type $request 
+ */
+public function hookPublicThemeHeader($request) {
 
 
-        echo js('teiInteract');
-    }
+echo js('teiInteract');
+}
 
-    /**
-     * Insert something into the theme body
-     * @param type $request 
-     */
-    public function hookPublicThemeBody($request) {
-        
-    }
+/**
+ * Insert something into the theme body
+ * @param type $request 
+ */
+public function hookPublicThemeBody($request) {
 
-    /**
-     * Do things when the user clicks install, like build DB tables, etc
-     * @throws Exception
-     */
-    function hookInstall() {
-        $db = get_db();
-        if (!class_exists('XSLTProcessor')) {
-            throw new Exception('Unable to access XSLTProcessor class.  Make sure the php-xsl package is installed.');
-        } else {
+}
+
+/**
+ * Do things when the user clicks install, like build DB tables, etc
+ * @throws Exception
+ */
+function hookInstall() {
+$db = get_db();
+if (!class_exists('XSLTProcessor')) {
+throw new Exception('Unable to access XSLTProcessor class.  Make sure the php-xsl package is installed.');
+} else {
 //            if(!copy('libraries/teiInteract_default.xsl', TEI_DISPLAY_STYLESHEET_FOLDER, null)){
 //                throw new Exception('Failed to copy libraries/teiInteract_default.xsl');
 //            }
 //            if(!copy('libraries/teiInteract_component.xsl', TEI_DISPLAY_STYLESHEET_FOLDER.DIRECTORY_SEPARATOR."includes", null)){
 //                throw new Exception('Failed to copy libraries/teiInteract_component.xsl');
 //            }
-            debug("done trying to copy files to xsl directory" . TEI_DISPLAY_STYLESHEET_FOLDER);
+debug("done trying to copy files to xsl directory" . TEI_DISPLAY_STYLESHEET_FOLDER);
 //create for facet mapping
-            $db->exec("CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_configs` (
-			`id` int(10) unsigned NOT NULL auto_increment,
-			`tei_display_id` int(10) unsigned, 
-                        `tei_classes` text, 
-	       PRIMARY KEY  (`id`)
-	       ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+$db->exec("DROP TABLE IF EXISTS `{$db->prefix}tei_interact_configs`; ");
+$db->exec("
+           CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_configs` (
+            `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+            `tag_name` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
+            `create_item` set('ana','key','type','value') COLLATE utf8_unicode_ci DEFAULT NULL,
+            `create_tag` set('ana','key','type','value') COLLATE utf8_unicode_ci DEFAULT NULL,
+            PRIMARY KEY (`id`)
+            ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+        ");
+$db->exec("
+            INSERT INTO `{$db->prefix}tei_interact_configs` (`id`, `tag_name`, `create_item`) VALUES
+            (1, 'name', 'type,value'),
+            (2, 'geogName', 'type,value'),
+            (5, 'persName', 'value'),
+            (3, 'interp', 'ana,type,value'),
+            (6, 'persName', 'ana,key,type,value'),
+            (7, 'orgName', 'ana,key,type,value');
+           ");
+            
+            
+$db->exec(
+        "CREATE TABLE IF NOT EXISTS `tei_interact_cleanup` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `omeka_table_name` varchar(80) NOT NULL,
+          `omeka_table_id` int(11) NOT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;"
+        );
+
+$db->exec("
+        DROP TABLE IF EXISTS `tei_interact_cleanup`;    
+        ");
 
             $namesTable = "CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_names` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `file_id` int(10) unsigned NOT NULL,
-  `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
-  `value` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `teiHeader` tinyint(1) NOT NULL COMMENT 'whether or not this name appears in the header or in the main text...1 for header, 0 for text',
-  `occurrenceCount` int(5) NOT NULL COMMENT 'how many times does this name occur in the file',
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=166 ;";
+            `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+             `file_id` int(10) unsigned NOT NULL,
+             `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+             `value` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+             `teiHeader` tinyint(1) NOT NULL COMMENT 'whether or not this name appears in the header or in the main text...1 for header, 0 for text',
+             `occurrenceCount` int(5) NOT NULL COMMENT 'how many times does this name occur in the file',
+             PRIMARY KEY (`id`)
+            ) ENGINE = MyISAM DEFAULT CHARSET = utf8 COLLATE = utf8_unicode_ci AUTO_INCREMENT = 166;
+            ";
             $db->exec($namesTable);
-
+            
             //repopulate the tei_interact_config_table with existing TEI datastreams from Fedora if FedoraConnector is installed
             //change datastream from 'TEI' to another string, if applicable
             if (function_exists('fedora_connector_installed')) {
