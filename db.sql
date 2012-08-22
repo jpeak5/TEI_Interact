@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 21, 2012 at 06:57 PM
+-- Generation Time: Aug 21, 2012 at 07:03 PM
 -- Server version: 5.5.24
 -- PHP Version: 5.3.10-1ubuntu3.2
 
@@ -676,7 +676,7 @@ CREATE TABLE IF NOT EXISTS `plugins` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `active_idx` (`active`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=41 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=44 ;
 
 --
 -- Dumping data for table `plugins`
@@ -684,7 +684,7 @@ CREATE TABLE IF NOT EXISTS `plugins` (
 
 INSERT INTO `plugins` (`id`, `name`, `active`, `version`) VALUES
 (23, 'TeiDisplay', 1, '1.0'),
-(39, 'TeiInteract', 1, '0.1'),
+(43, 'TeiInteract', 1, '0.1'),
 (40, 'CsvImport', 1, '1.3.4');
 
 -- --------------------------------------------------------
@@ -796,7 +796,7 @@ INSERT INTO `sessions` (`id`, `modified`, `lifetime`, `data`) VALUES
 ('df4u3hdioij592nqt42ojv7l72', 1344384547, 1209600, ''),
 ('dgenudbdpog7e17d3nghg0sbh5', 1343780269, 1209600, 'Default|a:1:{s:8:"redirect";s:1:"/";}flash|a:1:{s:6:"status";N;}Zend_Auth|a:1:{s:7:"storage";i:1;}'),
 ('dkh0848q0kbpkeknmuj6krqha7', 1344383729, 1209600, ''),
-('e1f2rc5p2j40ukq8tu98t2vo53', 1345592755, 1209600, 'Default|a:1:{s:8:"redirect";s:26:"/tei-interact/files/browse";}Zend_Auth|a:1:{s:7:"storage";i:1;}flash|a:1:{s:6:"status";N;}'),
+('e1f2rc5p2j40ukq8tu98t2vo53', 1345593798, 1209600, 'Default|a:1:{s:8:"redirect";s:26:"/tei-interact/files/browse";}Zend_Auth|a:1:{s:7:"storage";i:1;}flash|a:1:{s:6:"status";N;}'),
 ('e56mbcc1oit14uq8tdh0k1jfo1', 1344383931, 1209600, ''),
 ('hhe71m4864rfq15lue7u7v0rf3', 1344384506, 1209600, ''),
 ('i0ojrrc1d3fh1o60a73cq6rhv1', 1344384542, 1209600, ''),
@@ -909,11 +909,12 @@ CREATE TABLE IF NOT EXISTS `tei_interact_configs` (
 --
 
 INSERT INTO `tei_interact_configs` (`id`, `tag_name`, `create_item`, `create_tag`) VALUES
-(1, 'name', 'type,value', 'ana,key,type,value'),
-(2, 'geogName', 'type,value', 'ana,key,type,value'),
-(5, 'persName', 'value', 'value'),
-(3, 'interp', 'ana,type,value', 'type,value'),
-(7, 'orgName', 'ana,key,type,value', 'type,value');
+(1, 'name', 'type,value', NULL),
+(2, 'geogName', 'type,value', NULL),
+(5, 'persName', 'value', NULL),
+(3, 'interp', 'ana,type,value', NULL),
+(6, 'persName', 'ana,key,type,value', NULL),
+(7, 'orgName', 'ana,key,type,value', NULL);
 
 -- --------------------------------------------------------
 
