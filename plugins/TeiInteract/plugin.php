@@ -96,9 +96,12 @@ $db->exec("
             (7, 'orgName', 'ana,key,type,value');
            ");
             
+$db->exec("
+        DROP TABLE IF EXISTS `{$db->prefix}tei_interact_cleanup`;    
+        ");
             
 $db->exec(
-        "CREATE TABLE IF NOT EXISTS `tei_interact_cleanup` (
+        "CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_cleanup` (
           `id` int(11) NOT NULL AUTO_INCREMENT,
           `omeka_table_name` varchar(80) NOT NULL,
           `omeka_table_id` int(11) NOT NULL,
@@ -106,9 +109,7 @@ $db->exec(
         ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;"
         );
 
-$db->exec("
-        DROP TABLE IF EXISTS `tei_interact_cleanup`;    
-        ");
+
 
             $namesTable = "CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_names` (
             `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -174,6 +175,10 @@ $db->exec("
 
         $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_names`";
         debug('dropping table ' . $db->prefix) . 'tei_interact_names';
+        $db->query($sql);
+        
+        $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_cleanup`";
+        debug('dropping table ' . $db->prefix) . 'tei_interact_cleanup';
         $db->query($sql);
 
         //delete options, if exist
