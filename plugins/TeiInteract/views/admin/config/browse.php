@@ -11,6 +11,7 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
 <div id="primary">
     <?php echo flash(); ?>
     <?php
+    print_r($el);
     if (!empty($err)) {
         echo '<p class="error">' . html_escape($err) . '</p>';
     }
@@ -25,17 +26,27 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
     echo "<ul>";
     echo "<a href=\"".  html_escape(uri('tei-interact/config/create-element-sets'))."\">Create Element Sets</a>";
     echo "<br /><a href=\"".  html_escape(uri('tei-interact/config/create-items'))."\">Create Items</a>";
-    foreach ($results as $result){
-        echo "<li><strong>".$result->tag_name."</strong>";
-            echo "<ul>";
-                echo "<li>Creating items for: ".$result->create_item;
-                echo "</li>";
-            
-            
-                echo "<li>Creating tei-interact tags for: ".$result->create_tag;
-                echo "</li>";
-            echo "</ul>";
-        echo "</li>";
+    echo "<br /><a href=\"".  html_escape(uri('tei-interact/config/delete'))."\">Delete</a>";
+    echo "<br /><a href=\"".  html_escape(uri('tei-interact/config/build-item-type'))."\">make item type</a>";
+    
+    foreach ($results as $records){
+        
+        echo "<ul>";
+        foreach($records as $k=>$v){
+            echo "<li>";
+            echo $k ."...";
+                echo "<ul>";
+                foreach($v as $obj){
+                    echo "<li>";
+//                foreach($value as $x=>$y){
+                    echo $obj->name.", id ".$obj->id;
+                    echo "</li>";
+                }
+                echo "</ul>";
+            echo "</li>";
+        }
+        echo "</ul>";
+//            print_r($result);
     }
     echo "</ul>";
     ?>

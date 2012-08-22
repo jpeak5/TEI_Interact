@@ -12,18 +12,28 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
      * Get them and pass them to the view.
      */
     public function browseAction() {
-
+        $results = array();
         $db = $this->getDb();
-        $table = $db->getTable('TeiInteractConfig');
-        $results = "";
-        $results = $table->findAll();
+        $teiStuff = $db->getTable('TeiInteractCleanup')->findAll();
+        foreach($teiStuff as $ts){
+            
+                $next = $db->getTable($ts->omeka_table_name)->find($ts->omeka_table_id);
+//                $results[] = $next;
+                if (!in_array($results, $ts->omeka_table_name)) {
+                    $results[] = array($ts->omeka_table_name => array($next));
+                } else {
+                    $results[$ts->omeka_table_name][] = $next;
+                }
+            
+        }
+        
         $this->view->results = $results;
     }
 
-    public function deleteAction() {
-        $itemType->delete();
-        $elSet->delete();
-    }
+//    public function deleteAction() {
+//        $itemType->delete();
+//        $elSet->delete();
+//    }
 
     public function createElementSetsAction() {
 
@@ -40,6 +50,9 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
                 $elSet->save();
                 _log("browsing for element set id... " . $elSet->id);
                 $alreadyCreated = 1;
+                
+                TeiInteract_ConfigController::saveCleanupData('ElementSet', $elSet->id);
+
             }
         }
         
@@ -66,11 +79,11 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
                             )
                         );
         foreach($elements as $element) {
- 
-            if (($el = $tbl->findBySql("'name' = ? AND 'description' = ?", 
+            $el = null;
+            if (($el = $tbl->findBySql("'name' = ?", 
                                     array(
                                         $element['name'], 
-                                        $element['description']
+//                                        $element['description']
                                         )
                                     )==null)){
                 $el = new Element();
@@ -80,16 +93,25 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
                 $el->name = $element["name"];
                 $el->description = $element["description"];
                 $el->element_set_id = $element["element_set_id"];
-
-//        $el->element_set_id = $elSet->id;
                 $el->save();
+
+                $this->view->el = $el;
+//                debug('type of el = '.  gettype($el));
+//                debug('name '.$el->name);
+//                debug('description '.$el->description);
+//                debug('id '.$el->id);
+//                debug('exists ? '.$el->exists());
+//                debug("just finished save, insert id = ".$el->id);
+
+                TeiInteract_ConfigController::saveCleanupData('Element', $el->id);
             }
         }
+        
         return "Elements saved";
     }
 
     public function createItemsAction() {
-        insert_item(array(
+        $item = insert_item(array(
             'public' => true,
             'item_type_id' => 16
                 ), array(
@@ -105,12 +127,76 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
             )
                 )
         );
+        
+        TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
+                /**
+         * @TODO this is a hack; check the docs for a cleaner solution
+         * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
+         */
+        $this->redirect->gotoURL('tei-interact/config');
     }
 
-    public function buildItemTypes() {
-//        $itemType = insert_item_type("TEI Auto");
-//        $itemType->description = "item created programmatically by the TEI Interact plugin";
-//        $itemType->save();
+    public function buildItemTypeAction() {
+        $itemType = insert_item_type(array('name'=>"TEI Auto",
+                                    'description' => 'item created programmatically by the TEI Interact plugin' 
+                                    )
+                );
+        
+        
+        debug('got here!');
+        TeiInteract_ConfigController::saveCleanupData('ItemType', $itemType->id);
+        /**
+         * @TODO this is a hack; check the docs for a cleaner solution
+         * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
+         */
+        $this->redirect->gotoURL('tei-interact/config');
     }
 
+    public static function saveCleanupData($omeka_table_name, $omeka_table_id){
+                        //store id for later cleanup 
+                $cln = new TeiInteractCleanup();
+                $cln->omeka_table_id = $omeka_table_id;
+                $cln->omeka_table_name = $omeka_table_name;
+                $cln->save();
+                _log("storing cleanup data");
+    }
+    
+    public function deleteAction(){
+        $errors = array();
+        $records = $this->getDb()->getTable('TeiInteractCleanup')->findAll();
+        foreach($records as $record){
+            $tbl = $this->getDb()->getTable($record->omeka_table_name);
+            $toDelete = $tbl->find($record->omeka_table_id);
+            if(empty($toDelete)){
+                $errors[] = $record;
+            }else{
+            debug("Deleting from ".$record->omeka_table_name.", ID ".$record->omeka_table_id);
+            
+                $toDelete->delete();
+                debug('delete success, now removing cleanup record, id '.$record->id);
+                $record->delete();
+            }
+        }
+//            $this->view->deleteErrors = $errors;
+        $message ="";    
+        if(count($errors) > 0) {
+            foreach ($errors as $error) {
+                $message.="Error processing cleanup record ".$error->id;
+                $message.="<br/>    for Table ".$error->omeka_table_name.", ID ".$error->omeka_table_id;
+                $message.="<br/>        **Will attempt to delete from cleanup table**";
+                $error->delete();
+                debug($message);
+            }
+            $this->flash($message, 5);
+        } else {
+            $this->flash("deletions successful", 1);
+        }
+            
+         /**
+         * @TODO this is a hack; check the docs for a cleaner solution
+         * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
+         */
+        $this->redirect->gotoURL('tei-interact/config');
+    }
+    
 }
