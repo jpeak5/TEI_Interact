@@ -1,5 +1,5 @@
 <?php
-
+require_once("ConfigController.php");
 /**
  * Main front-most controller for the TeiInteract plugin
  * @package TeiInteract
@@ -146,14 +146,20 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR . $file->getStoragePath('archive');
         $xml = new SimpleXMLElement(file_get_contents($path));
         _log('loading xml from ' . $path);
-
-        $count = $this->_createNames($this->_parseNames($xml));
-        _log("created " . $count . " records for file " . $this->file_id);
+        
+        $xml = $xml->xpath("{$section}//geogName");
+        foreach($xml as $x){
+            debug('calling _parse');
+            $this->_parse($x);
+        }
+//        $count = $this->_createNames($this->_parseNames($xml));
+//        $count = $this->_createNames($this->_parseNames($xml));
+//        _log("created " . $count . " records for file " . $this->file_id);
         /**
          * @TODO this is a hack; check the docs for a cleaner solution
          * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
          */
-        $this->redirect->gotoURL('tei-interact/list/inspect?id=' . $this->file_id);
+        $this->redirect->gotoURL('tei-interact/files/tags?id=' . $this->file_id);
     }
 
     /**
@@ -170,6 +176,77 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         }
     }
 
+    
+    private function _parse(SimpleXMLElement $xml){
+        $tagname = $xml->getName();
+        if(!$tagname){return false;}
+        
+        switch ($xml->getName()) {
+            case 'persName':
+                        $item = insert_item(array(
+                    'public' => true,
+                    'item_type_id' => 25
+                        ), array(
+                    'Dublin Core' => array(
+                        'Title' => array(
+                            array('text' => $xml, 'html' => 'false')
+                        )
+                    ),
+                    'TEI Interact' => array(
+                        'tei-type' => array(
+                            array('text' => $tagname, 'html' => 'false')
+                        )
+                    )
+                        )
+                );
+                
+                
+                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
+
+
+                break;
+            
+                        case 'geogName':
+                        $item = insert_item(array(
+                    'public' => true,
+                    'item_type_id' => 25
+                        ), array(
+                    'Dublin Core' => array(
+                        'Title' => array(
+                            array('text' => $xml, 'html' => 'false')
+                        )
+                    ),
+                    'TEI Interact' => array(
+                        'tei-type' => array(
+                            array('text' => $tagname, 'html' => 'false')
+                        )
+                    )
+                        )
+                );
+                
+                
+                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
+
+
+                break;
+
+            default:
+            break;
+                        /**
+                 * @TODO this is a hack; check the docs for a cleaner solution
+                 * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
+                 */
+                $this->redirect->gotoURL('tei-interact/files');
+        }
+
+    }
+    
+    public function findNamesAction(){
+        
+    }
+    
+    
+    
     /**
      *
      * @param SimpleXMLElement $xml
@@ -183,7 +260,8 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $nameObjs = array();
 
         foreach ($sections as $section) {
-            foreach ($xml->xpath("{$section}//name") as $name) {
+            $names = $xml->xpath("{$section}//name");
+            foreach ($names as $name) {
                 if (strlen($name) > 0) {
                     $nameObj = new TeiInteractName();
                     $nameObj->value = $name;
@@ -201,6 +279,11 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                         $nameObj->type = 'untyped';
                     }
 //clean up the text, accounting for possesive forms...
+                    /**
+                     * @TODO add regex filters here to 
+                     * normalize other text features like extra whitespace,
+                     * tabs and line breaks, etc
+                     */
                     if (substr($nameObj->value, strlen($nameObj->value) - 2) == "'s") {
                         $clnName = substr($nameObj->value, 0, strlen($nameObj->value) - 2);
                         _log("cleaning " . $nameObj->value . " to " . $clnName);
@@ -211,7 +294,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                         $nameObjs[] = $nameObj;
                     } else {
                         foreach ($nameObjs as $no) {
-                            if (!self::n_amesDiffer($nameObj, $no)) {
+                            if (!self::_namesDiffer($nameObj, $no)) {
                                 $no->occurrenceCount++;
                             }
                         }
