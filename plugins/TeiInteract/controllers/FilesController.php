@@ -1,3 +1,6 @@
+
+
+
 <?php
 require_once("ConfigController.php");
 /**
@@ -140,10 +143,12 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $db = get_db();
         $this->file_id = $this->_getParam('id');
         $file = $db->getTable('File')->find($this->file_id);
-        _log("from harvest action handler, we are going to work with file id = " . $this->file_id);
+        _log("from harvest action handler, we are going to work with file id = " 
+                . $this->file_id);
 
 
-        $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR . $file->getStoragePath('archive');
+        $path = BASE_DIR . DIRECTORY_SEPARATOR . 'archive' . DIRECTORY_SEPARATOR 
+                . $file->getStoragePath('archive');
         $xml = new SimpleXMLElement(file_get_contents($path));
         _log('loading xml from ' . $path);
         
@@ -168,7 +173,8 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
      */
     private function _getFiles() {
         $db = get_db();
-        $files = $db->getTable('File')->findBySql('mime_browser = ?', array('application/xml'));
+        $files = $db->getTable('File')->findBySql('mime_browser = ?', 
+                                                    array('application/xml'));
         if ($files) {
             return $files;
         } else {
@@ -176,6 +182,9 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         }
     }
 
+    private function _normalizeText($string){
+        
+    }
     
     private function _parse(SimpleXMLElement $xml){
         $tagname = $xml->getName();
@@ -185,7 +194,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
             case 'persName':
                         $item = insert_item(array(
                     'public' => true,
-                    'item_type_id' => 25
+                    'item_type_id' => TEI_INTERACT_ITEM_TYPE
                         ), array(
                     'Dublin Core' => array(
                         'Title' => array(
@@ -209,7 +218,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                         case 'geogName':
                         $item = insert_item(array(
                     'public' => true,
-                    'item_type_id' => 25
+                    'item_type_id' => TEI_INTERACT_ITEM_TYPE
                         ), array(
                     'Dublin Core' => array(
                         'Title' => array(

@@ -9,10 +9,10 @@
 /**
  * a dummy test CONSTANT
  */
-define('TEI_INTERACT_TEST', 'this is only a test');
+
 
 use \Omeka_Record;
-
+require_once('controllers/ConfigController.php');
 /**
  * 
  * This class is the main script for the plugin as desribed in 
@@ -39,6 +39,14 @@ protected $_filters = array('admin_navigation_main');
  */
 public function hookInitialize() {
 //        debug('TeiInteract::hookInitialize()');
+    
+    $tbl = new ItemTypeTable('ItemType', get_db());
+    $itemType = $tbl->findByName('TEI Interact Item');
+    /**
+     * used when inserting items    
+     */
+    define(TEI_INTERACT_ITEM_TYPE, $itemType->id);
+    debug('constant value is '.TEI_INTERACT_ITEM_TYPE);
 }
 
 /**
@@ -97,11 +105,11 @@ $db->exec("
            ");
             
 $db->exec("
-        DROP TABLE IF EXISTS `{$db->prefix}tei_interact_cleanup`;    
+        DROP TABLE IF EXISTS `{$db->prefix}tei_interact_cleanups`;    
         ");
             
 $db->exec(
-        "CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_cleanup` (
+        "CREATE TABLE IF NOT EXISTS `{$db->prefix}tei_interact_cleanups` (
           `id` int(11) NOT NULL AUTO_INCREMENT,
           `omeka_table_name` varchar(80) NOT NULL,
           `omeka_table_id` int(11) NOT NULL,
@@ -161,6 +169,9 @@ $db->exec(
 //                }
             }
         }
+        
+        $this->_buildItemType();
+        $this->_createElements($this->_createElementSets());
     }
     
     
@@ -177,13 +188,122 @@ $db->exec(
         debug('dropping table ' . $db->prefix) . 'tei_interact_names';
         $db->query($sql);
         
-        $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_cleanup`";
-        debug('dropping table ' . $db->prefix) . 'tei_interact_cleanup';
+        //delete anything we've added
+        $this->_deleteAllArtifacts();
+        
+        $sql = "DROP TABLE IF EXISTS `{$db->prefix}tei_interact_cleanups`";
+        debug('dropping table ' . $db->prefix) . 'tei_interact_cleanups';
         $db->query($sql);
 
-        //delete options, if exist
+        
+    }
+    
+    /**
+     * this method removes all of the items, elements, element sets, etc
+     * that we have added to the system
+     */
+    private function _deleteAllArtifacts() {
+        $errors = array();
+        $records = get_db()->getTable('TeiInteractCleanup')->findAll();
+        foreach ($records as $record) {
+            
+            $tbl = get_db()->getTable($record->omeka_table_name);
+            $toDelete = $tbl->find($record->omeka_table_id);
+            if (empty($toDelete)) {
+                $errors[] = $record;
+            } else {
+                debug("Deleting from " . $record->omeka_table_name . ", ID " . $record->omeka_table_id);
+
+                $toDelete->delete();
+                debug('delete success, now removing cleanup record, id ' . $record->id);
+                $record->delete();
+            }
+        }
+
+
     }
 
+    private function _buildItemType() {
+    $itemType = insert_item_type(array('name' => "TEI Interact Item",
+        'description' => 'item created programmatically by the TEI Interact plugin'
+            )
+    );
+
+
+   
+    TeiInteract_ConfigController::saveCleanupData('ItemType', $itemType->id);
+    
+    
+   
+}
+
+    private function _createElementSets() {
+
+        //playing around with getting an element set...
+        $elSets = array("TEI Interact");
+        $tbl = get_db()->getTable('ElementSet');
+        $elSet = null;
+        $alreadyCreated = 4;
+        foreach ($elSets as $es) {
+            if (($elSet = $tbl->findByName($es)) == null) {
+                $elSet = insert_element_set($es);
+                $elSet->record_type_id = 2;
+                $elSet->description = "Elements used to describe items 
+                    auto-created by the TEI Interact plugin";
+                $elSet->save();
+                _log("browsing for element set id... " . $elSet->id);
+                $alreadyCreated = 1;
+                
+                TeiInteract_ConfigController::saveCleanupData('ElementSet', 
+                                                                $elSet->id);
+
+            }
+        }
+        
+        
+        
+        $message = $alreadyCreated == 4 ? " already exists in the DB!" : " created in the DB";
+        debug($result." Element set '" . $es . "', with ID ". $elSet->id . $message, $alreadyCreated);
+        
+        return $elSet->id;
+        
+    }
+
+    private function _createElements($elementSet) {
+        $tbl = get_db()->getTable('Element');
+        $elements = array(
+                        array(
+                            "name" => 'tei-type',
+                            "description" => 'TEI type element',
+                            "record_type_id" => 2,
+                            "data_type_id" => 1,
+                            "element_set_id" => $elementSet
+                            )
+                        );
+        foreach($elements as $element) {
+            $el = null;
+            if (($el = $tbl->findBySql("'name' = ?", 
+                                    array(
+                                        $element['name'], 
+//                                        $element['description']
+                                        )
+                                    )==null)){
+                $el = new Element();
+                _log("creating new element");
+                $el->record_type_id = $element["record_type_id"];
+                $el->data_type_id = $element["data_type_id"];
+                $el->name = $element["name"];
+                $el->description = $element["description"];
+                $el->element_set_id = $element["element_set_id"];
+                $el->save();
+
+                TeiInteract_ConfigController::saveCleanupData('Element', $el->id);
+            }
+        }
+        
+        return "Elements saved";
+    }
+    
     /**
      * Do things after an item has been saved
      * @param type $item
