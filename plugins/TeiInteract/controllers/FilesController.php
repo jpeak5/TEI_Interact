@@ -143,6 +143,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $db = get_db();
         $this->file_id = $this->_getParam('id');
         $file = $db->getTable('File')->find($this->file_id);
+        $tagsWeCareAbout = array('//persName', '//geogName', "//name[@type='ship']", "//sourceDesc/bibl/publisher");
         _log("from harvest action handler, we are going to work with file id = " 
                 . $this->file_id);
 
@@ -151,11 +152,32 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                 . $file->getStoragePath('archive');
         $xml = new SimpleXMLElement(file_get_contents($path));
         _log('loading xml from ' . $path);
-        
-        $xml = $xml->xpath("{$section}//geogName");
-        foreach($xml as $x){
-            debug('calling _parse');
-            $this->_parse($x);
+       
+        $uniqueResults = array();
+        /**
+         * @TODO: this is pretty sloppy and probably going to crash the webserver
+         */
+        foreach ($tagsWeCareAbout as $xpath) {
+            $results = $xml->xpath($xpath);
+            $found = array();
+            
+            for($i=0;$i<count($results);$i++){
+                if(!in_array((string)$results[$i],$found)){
+                    $found[] = (string)$results[$i];
+                }else{
+                    unset($results[$i]);
+                }
+            }
+            $dbgFound = "";
+            foreach($found as $f){
+                $dbgFound.=$f;
+            }
+            debug('FOUND some stuff '.$dbgFound);
+            foreach ($results as $r) {
+                debug('calling _parse');
+                $this->_parse($r);
+            }
+            debug(sprintf("Found %d instances for xpath %s", count($results), $xpath));
         }
 //        $count = $this->_createNames($this->_parseNames($xml));
 //        $count = $this->_createNames($this->_parseNames($xml));
@@ -186,19 +208,23 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         
     }
     
-    private function _parse(SimpleXMLElement $xml){
+    private function _parse(SimpleXMLElement $xml) {
         $tagname = $xml->getName();
-        if(!$tagname){return false;}
-        
+        if (!$tagname) {
+            return false;
+        }
+
         switch ($xml->getName()) {
             case 'persName':
-                        $item = insert_item(array(
-                    'public' => true,
-                    'item_type_id' => TEI_INTERACT_ITEM_TYPE
+                $tbl = new ItemTypeTable('ItemType', $this->getDb());
+                $itemTypeId = $tbl->findByName(TeiInteract::CHARACTER_TYPE);
+                $item = insert_item(array(
+                    'public' => false,
+                    'item_type_id' => $itemTypeId->id
                         ), array(
                     'Dublin Core' => array(
                         'Title' => array(
-                            array('text' => $xml, 'html' => 'false')
+                            array('text' => (string) $xml[0], 'html' => 'false')
                         )
                     ),
                     'TEI Interact' => array(
@@ -208,21 +234,23 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                     )
                         )
                 );
-                
-                
+
+
                 TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
 
 
                 break;
-            
-                        case 'geogName':
-                        $item = insert_item(array(
-                    'public' => true,
-                    'item_type_id' => TEI_INTERACT_ITEM_TYPE
+
+            case 'geogName':
+                $tbl = new ItemTypeTable('ItemType', $this->getDb());
+                $itemTypeId = $tbl->findByName(TeiInteract::PLACE_TYPE);
+                $item = insert_item(array(
+                    'public' => false,
+                    'item_type_id' => $itemTypeId->id
                         ), array(
                     'Dublin Core' => array(
                         'Title' => array(
-                            array('text' => $xml, 'html' => 'false')
+                            array('text' => (string) $xml[0], 'html' => 'false')
                         )
                     ),
                     'TEI Interact' => array(
@@ -232,22 +260,71 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                     )
                         )
                 );
-                
-                
+
+
+                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
+
+
+                break;
+            case 'name':
+                $tbl = new ItemTypeTable('ItemType', $this->getDb());
+                $itemTypeId = $tbl->findByName(TeiInteract::SHIP_TYPE);
+                $item = insert_item(array(
+                    'public' => false,
+                    'item_type_id' => $itemTypeId->id
+                        ), array(
+                    'Dublin Core' => array(
+                        'Title' => array(
+                            array('text' => (string) $xml[0], 'html' => 'false')
+                        )
+                    ),
+                    'TEI Interact' => array(
+                        'tei-type' => array(
+                            array('text' => $tagname, 'html' => 'false')
+                        )
+                    )
+                        )
+                );
+
+
+                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
+
+
+                break;
+            case 'publisher':
+                $tbl = new ItemTypeTable('ItemType', $this->getDb());
+                $itemTypeId = $tbl->findByName(TeiInteract::PUBLISHER_TYPE);
+                $item = insert_item(array(
+                    'public' => false,
+                    'item_type_id' => $itemTypeId->id
+                        ), array(
+                    'Dublin Core' => array(
+                        'Title' => array(
+                            array('text' => (string) $xml[0], 'html' => 'false')
+                        )
+                    ),
+                    'TEI Interact' => array(
+                        'tei-type' => array(
+                            array('text' => $tagname, 'html' => 'false')
+                        )
+                    )
+                        )
+                );
+
+
                 TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
 
 
                 break;
 
             default:
-            break;
-                        /**
+                break;
+                /**
                  * @TODO this is a hack; check the docs for a cleaner solution
                  * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
                  */
                 $this->redirect->gotoURL('tei-interact/files');
         }
-
     }
     
     public function findNamesAction(){

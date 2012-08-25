@@ -24,10 +24,7 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
     echo " <a href=\"" . html_escape(uri('tei-interact/files/browse'))."\">TEI Files</a>";
     echo " in this system</p>";
     echo "<ul>";
-    echo "<a href=\"".  html_escape(uri('tei-interact/config/create-element-sets'))."\">Create Element Sets</a>";
-    echo "<br /><a href=\"".  html_escape(uri('tei-interact/config/create-items'))."\">Create Items</a>";
-    echo "<br /><a href=\"".  html_escape(uri('tei-interact/config/delete'))."\">Delete</a>";
-    echo "<br /><a href=\"".  html_escape(uri('tei-interact/config/build-item-type'))."\">make item type</a>";
+    
     
     foreach ($results as $records){
         
