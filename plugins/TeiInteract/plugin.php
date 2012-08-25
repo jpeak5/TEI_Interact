@@ -170,7 +170,7 @@ $db->exec(
             }
         }
         
-        $this->_buildItemType();
+        $this->_createItemType();
         $this->_createElements($this->_createElementSets());
     }
     
@@ -223,15 +223,40 @@ $db->exec(
 
     }
 
-    private function _buildItemType() {
-    $itemType = insert_item_type(array('name' => "TEI Interact Item",
-        'description' => 'item created programmatically by the TEI Interact plugin'
+    private function _createItemType() {
+        $itemTypes = array(
+            array(
+                'name'=>'Publisher',
+                'description'=>'The publisher of a tale'
+            ),
+            array(
+                'name'=>'Place',
+                'description'=>'A geographic place referenced within a tale'
+            ),
+            array(
+                'name'=>'character',
+                'description'=>'a character in a tale'
+            ),
+            array(
+                'name'=>'ship',
+                'description'=>'A Ship'
             )
-    );
+            
+        );
+        
+        foreach($itemTypes as $itemType){
+        $itemType = insert_item_type(
+                                array(
+                                    'name' => $itemType['name'],
+                                    'description' => $itemType['description']
+                                      )
+                                );
+        TeiInteract_ConfigController::saveCleanupData('ItemType', $itemType->id);
+        }
 
 
    
-    TeiInteract_ConfigController::saveCleanupData('ItemType', $itemType->id);
+    
     
     
    
