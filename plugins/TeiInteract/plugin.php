@@ -34,6 +34,11 @@ protected $_hooks = array('install', 'initialize', 'public_theme_header', 'publi
  */
 protected $_filters = array('admin_navigation_main');
 
+    const PUBLISHER_TYPE = 'Publisher';
+    const PLACE_TYPE = 'Place';
+    const CHARACTER_TYPE = 'Character';
+    const SHIP_TYPE = 'Ship';
+
 /**
  * this does nothing
  */
@@ -46,7 +51,7 @@ public function hookInitialize() {
      * used when inserting items    
      */
     define(TEI_INTERACT_ITEM_TYPE, $itemType->id);
-    debug('constant value is '.TEI_INTERACT_ITEM_TYPE);
+    
 }
 
 /**
@@ -226,19 +231,19 @@ $db->exec(
     private function _createItemType() {
         $itemTypes = array(
             array(
-                'name'=>'Publisher',
+                'name'=>self::PUBLISHER_TYPE,
                 'description'=>'The publisher of a tale'
             ),
             array(
-                'name'=>'Place',
+                'name'=>self::PLACE_TYPE,
                 'description'=>'A geographic place referenced within a tale'
             ),
             array(
-                'name'=>'character',
+                'name'=>self::CHARACTER_TYPE,
                 'description'=>'a character in a tale'
             ),
             array(
-                'name'=>'ship',
+                'name'=>self::SHIP_TYPE,
                 'description'=>'A Ship'
             )
             
