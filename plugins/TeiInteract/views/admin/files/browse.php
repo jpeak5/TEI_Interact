@@ -30,12 +30,12 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
 
                     <?php
 //                    sort($tags, SORT_STRING);
-                    $item = item('Dublin Core', 'Title', $options, $file->getItem());
+                    $title = item('Dublin Core', 'Title', $options, $file->getItem());
                     $web = $file->getWebPath('archive');
                     $file_id = $file->id;
 //                    print_r($file);
                     debug('file id = ' . $file_id);
-                    echo "<strong>" . $item . "</strong> - ".$file->original_filename;
+                    echo "<strong>" . $title . "</strong> - ".$file->original_filename;
                     echo " <a href=\"" . $web . "\">View in Browser</a><br/>";
                     
                     echo " <a href=\"" . html_escape(uri('tei-interact/files/tags', array('id' => $file_id))) . "\" class=\"inspect\">Inspect TEI Tags</a>";

@@ -16,36 +16,63 @@ head(array('title' => 'TEI Interact Configuration', 'bodyclass' => 'primary', 'c
         echo '<p class="error">' . html_escape($err) . '</p>';
     }
     
-    echo "<h1>".$elSetId."</h1>";
-    echo "<h1>".$itemTypeId."</h1>";
+
+    $cells = array();
+    foreach($files as $file){
+        
+        $title = item('Dublin Core', 'Title', $options, $file->getItem());
+
+        $line1 = sprintf("<strong>%s</strong> - %s",$title ,$file->original_filename);
+        $line2 = sprintf("<br/><a href=\"%s\">Raw</a>&nbsp;&nbsp;", $file->getWebPath('archive'));
+        $line3 = sprintf("&bull;&nbsp;&nbsp;    <a href=\"%s\" class=\"inspect\">Tags</a>"
+                ,html_escape(uri('tei-interact/files/tags', 
+                        array('id' => $file->id))));
+        $part4 = sprintf("&nbsp;&bull;&nbsp;<a href=\"%s\">populate DB</a></p>",html_escape(uri('tei-interact/files/harvest', array('id' => $file->id))));
+        $cells[] = sprintf("%s%s%s%s<br/>", $line1,$line2,$line3, $part4);
+    }
     
-    echo "<h2>Parsing for Tags</h2>";
-    echo "<p>The following is a summary of the TEI entities<br/> for which we will create tags and/or items from the ";
-    echo " <a href=\"" . html_escape(uri('tei-interact/files/browse'))."\">TEI Files</a>";
-    echo " in this system</p>";
-    echo "<ul>";
+
     
+    
+    echo "<p>The following is a summary of the TEI entities<br/> for which we 
+        will create tags and/or items from the TEI Files in this system</p>";
+    
+    
+    
+            
+    $iCells = array();
     
     foreach ($results as $records){
         
-        echo "<ul>";
         foreach($records as $k=>$v){
-            echo "<li>";
-            echo $k ."...";
-                echo "<ul>";
+            $iCell = $k;
                 foreach($v as $obj){
-                    echo "<li>";
-//                foreach($value as $x=>$y){
-                    echo $obj->name.", id ".$obj->id;
-                    echo "</li>";
+                    $iCell.= sprintf("(<em>%d</em>) <strong>%s</strong>",$obj->id,$obj->name); 
+                    $iCell .= $k == 'ItemType' 
+                                    ? sprintf("&nbsp;&bull;&nbsp;<a href=\"%s\">Items</a>",html_escape(uri('items/browse',
+                                            array('type' => $obj->id))))
+                                    : '';
                 }
-                echo "</ul>";
-            echo "</li>";
         }
-        echo "</ul>";
-//            print_r($result);
+        
+        $iCells[] = $iCell;
     }
-    echo "</ul>";
+
+    
+    echo "<hr/>";
+    $max = max(count($cells), count($iCells));
+    
+    //build table
+    $table = "<table>";
+    $table.="<tr><th>FILES</th><th>INFRASTRUCTURE</th></tr>";
+    for($i=0;$i<$max;$i++){
+        $row = "<tr>";
+        $row.="<td>$cells[$i]</td><td>$iCells[$i]</td>";
+        $row.="</tr>";
+        $table.=$row;
+    }
+    $table.="</table>";
+    echo $table;
     ?>
     
 

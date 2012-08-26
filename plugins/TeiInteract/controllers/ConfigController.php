@@ -14,12 +14,12 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
     public function browseAction() {
         $results = array();
         $db = $this->getDb();
-        $teiStuff = $db->getTable('TeiInteractCleanup')->findAll();
+        $teiStuff = $db->getTable('TeiInteractCleanup')->findBySQL('omeka_table_name != ?', array('Item'));
         foreach($teiStuff as $ts){
             
                 $next = $db->getTable($ts->omeka_table_name)->find($ts->omeka_table_id);
 //                $results[] = $next;
-                if (!in_array($results, $ts->omeka_table_name)) {
+                    if (!in_array($ts->omeka_table_name, $results)) {
                     $results[] = array($ts->omeka_table_name => array($next));
                 } else {
                     $results[$ts->omeka_table_name][] = $next;
@@ -28,6 +28,11 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
         }
         
         $this->view->results = $results;
+        
+        $this->view->files = $this->_getFiles();
+        if(empty($this->view->files)){
+            debug('files array is EMTPY!!!!');
+        }        
     }
 
 //    public function deleteAction() {
@@ -51,5 +56,18 @@ class TeiInteract_ConfigController extends Omeka_Controller_Action {
     }
     
 
-    
+        /**
+     * Get TEI files from the files table by mime type.
+     * @return File|boolean
+     */
+    private function _getFiles() {
+        
+        $files = $this->getDb()->getTable('File')->findBySql('mime_browser = ?', array('application/xml'));
+        if ($files) {
+            debug(sprintf("returning %d files for config controller/browse", count($files)));
+            return $files;
+        } else {
+            return false;
+        }
+    }
 }

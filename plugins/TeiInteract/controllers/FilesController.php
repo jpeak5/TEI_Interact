@@ -161,6 +161,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
             $results = $xml->xpath($xpath);
             $found = array();
             
+            //let's try to minimize duplicates everywhere we can
             for($i=0;$i<count($results);$i++){
                 if(!in_array((string)$results[$i],$found)){
                     $found[] = (string)$results[$i];
@@ -168,11 +169,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                     unset($results[$i]);
                 }
             }
-            $dbgFound = "";
-            foreach($found as $f){
-                $dbgFound.=$f;
-            }
-            debug('FOUND some stuff '.$dbgFound);
+            
             foreach ($results as $r) {
                 debug('calling _parse');
                 $this->_parse($r);
@@ -186,7 +183,7 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
          * @TODO this is a hack; check the docs for a cleaner solution
          * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
          */
-        $this->redirect->gotoURL('tei-interact/files/tags?id=' . $this->file_id);
+        $this->redirect->gotoURL('tei-interact/config/browse');
     }
 
     /**
@@ -205,128 +202,123 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
     }
 
     private function _normalizeText($string){
+        debug("begin normalizeText...". $string);
+        $pattern = array("/'s/", "/\s\s/", "/\b\./", "/'\b/","/\b'/");
+        $replace = array(""," ", '','','');
+        debug(sprintf("cleaning string %s", $string));
+        $new = preg_replace($pattern, $replace, $string);
+        debug(sprintf("returning cleaned string %s", $new));
+        return $new;
+    }
+    
+    private function _checkExists($itemTypeId, $title){
+        debug("calling normalize text... for title ".$title);
+        $title = $this->_normalizeText($title);
+        $tbl = new ElementTable('Element', $this->getDb());
+        $dcTitleElement = $tbl->findByElementSetNameAndElementName('Dublin Core', 'Title');
         
+        $etTbl = new ElementTextTable('ElementText', $this->getDb());
+        $found = $etTbl->findBySQL("element_id = ? AND text = ?", array($dcTitleElement->id, $title));
+        debug(sprintf("looking for an element with id %d and text '%s'", $dcTitleElement->id, $title));
+        if(!empty($found)){
+            foreach($found as $f){
+                debug(sprintf('found match for item type id (%d), title (%s) in Element text table id = %d, text = %s',$itemTypeId, $title,$f->id, $f->text));
+                $item = $this->getDb()->getTable('Item')->find($f->record_id);
+                if($item->item_type_id == $itemTypeId){
+                    
+                    return true;
+                }
+            }
+        }else{
+            return false;
+        }
     }
     
     private function _parse(SimpleXMLElement $xml) {
         $tagname = $xml->getName();
         if (!$tagname) {
+            debug('FilesController::_parse() - arg \$xml is null, returning false');
             return false;
         }
-
+        $tbl = new ItemTypeTable('ItemType', $this->getDb());
+        $itemType = null;
+        debug('FilesController::_parse() - entering multiway switch ');
         switch ($xml->getName()) {
+            
             case 'persName':
-                $tbl = new ItemTypeTable('ItemType', $this->getDb());
-                $itemTypeId = $tbl->findByName(TeiInteract::CHARACTER_TYPE);
-                $item = insert_item(array(
-                    'public' => false,
-                    'item_type_id' => $itemTypeId->id
-                        ), array(
-                    'Dublin Core' => array(
-                        'Title' => array(
-                            array('text' => (string) $xml[0], 'html' => 'false')
-                        )
-                    ),
-                    'TEI Interact' => array(
-                        'tei-type' => array(
-                            array('text' => $tagname, 'html' => 'false')
-                        )
-                    )
-                        )
-                );
-
-
-                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
-
-
+                $itemType = $tbl->findByName(TeiInteract::CHARACTER_TYPE);
+                debug('FilesController::_parse() - multiway switch - case = persName');
                 break;
 
             case 'geogName':
-                $tbl = new ItemTypeTable('ItemType', $this->getDb());
-                $itemTypeId = $tbl->findByName(TeiInteract::PLACE_TYPE);
-                $item = insert_item(array(
-                    'public' => false,
-                    'item_type_id' => $itemTypeId->id
-                        ), array(
-                    'Dublin Core' => array(
-                        'Title' => array(
-                            array('text' => (string) $xml[0], 'html' => 'false')
-                        )
-                    ),
-                    'TEI Interact' => array(
-                        'tei-type' => array(
-                            array('text' => $tagname, 'html' => 'false')
-                        )
-                    )
-                        )
-                );
-
-
-                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
-
-
+                $itemType = $tbl->findByName(TeiInteract::PLACE_TYPE);
+                debug('FilesController::_parse() - multiway switch - case = geogName');
                 break;
-            case 'name':
-                $tbl = new ItemTypeTable('ItemType', $this->getDb());
-                $itemTypeId = $tbl->findByName(TeiInteract::SHIP_TYPE);
-                $item = insert_item(array(
-                    'public' => false,
-                    'item_type_id' => $itemTypeId->id
-                        ), array(
-                    'Dublin Core' => array(
-                        'Title' => array(
-                            array('text' => (string) $xml[0], 'html' => 'false')
-                        )
-                    ),
-                    'TEI Interact' => array(
-                        'tei-type' => array(
-                            array('text' => $tagname, 'html' => 'false')
-                        )
-                    )
-                        )
-                );
-
-
-                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
-
-
+            /**
+             * @TODO name is a really generic tag with many attributes 
+             * and will likely require a dedicated method to oparse it
+             */
+            case 'name': 
+                foreach ($xml[0]->attributes() as $key => $val) {
+                    if ($key == 'type') {
+                        if ($val == 'ship') {
+                            $itemType = $tbl->findByName(TeiInteract::SHIP_TYPE);
+                        }
+                    }
+                }
+//                $itemTypeId = $tbl->findByName(TeiInteract::CHARACTER_TYPE);
+                debug('FilesController::_parse() - multiway switch - case = name');
                 break;
+            
             case 'publisher':
-                $tbl = new ItemTypeTable('ItemType', $this->getDb());
-                $itemTypeId = $tbl->findByName(TeiInteract::PUBLISHER_TYPE);
-                $item = insert_item(array(
-                    'public' => false,
-                    'item_type_id' => $itemTypeId->id
-                        ), array(
-                    'Dublin Core' => array(
-                        'Title' => array(
-                            array('text' => (string) $xml[0], 'html' => 'false')
-                        )
-                    ),
-                    'TEI Interact' => array(
-                        'tei-type' => array(
-                            array('text' => $tagname, 'html' => 'false')
-                        )
-                    )
-                        )
-                );
-
-
-                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
-
-
+                $itemType = $tbl->findByName(TeiInteract::PUBLISHER_TYPE);
+                debug('FilesController::_parse() - multiway switch - case = publisher');
                 break;
 
             default:
+                debug('FilesController::_parse() - taking default case in mwy switch    ');
                 break;
+
+
+        }
+                $title = $this->_normalizeText(trim((string) $xml[0]));
+                
+                //if the item exists, break out of here....
+                if($this->_checkExists($itemType->id, $title)){
+                    return;
+                }
+                
+                $item = insert_item(array(
+                    'public' => false,
+                    'item_type_id' => $itemType->id
+                        ), array(
+                    'Dublin Core' => array(
+                        'Title' => array(
+                            array('text' => $title, 'html' => 'false')
+                        )
+                    ),
+                    'TEI Interact' => array(
+                        'TEI Tag' => array(
+                            array('text' => $title, 'html' => 'false')
+                        ),
+                        'TEI Element' => array(
+                            array('text' => $tagname, 'html' => 'false')
+                        )
+                    )
+                        )
+                );
+
+                debug('FilesController::_parse() - leaving method       ');
+                TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
+
                 /**
                  * @TODO this is a hack; check the docs for a cleaner solution
                  * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
                  */
-                $this->redirect->gotoURL('tei-interact/files');
-        }
+//                $this->redirect->gotoURL('tei-interact/files');
+        
     }
-    
+
     public function findNamesAction(){
         
     }
