@@ -38,6 +38,10 @@ protected $_filters = array('admin_navigation_main');
     const PLACE_TYPE = 'Place';
     const CHARACTER_TYPE = 'Character';
     const SHIP_TYPE = 'Ship';
+    
+    const TEI_ELEMENT_SET = 'TEI Interact';
+    const TEI_ELEMENT = 'TEI_ELEMENT';
+    const TEI_TAG = 'TEI_TAG';
 
 /**
  * this does nothing
@@ -52,6 +56,10 @@ public function hookInitialize() {
      */
     define(TEI_INTERACT_ITEM_TYPE, $itemType->id);
     
+    
+    $tbl = new ElementTable('Element', get_db());
+    define(TEI_ELEMENT_ID, $tbl->findByElementSetNameAndElementName(TEI_ELEMENT_SET, TEI_ELEMENT));
+    define(TEI_TAG_ID, $tbl->findByElementSetNameAndElementName(TEI_ELEMENT_SET, TEI_TAG));
 }
 
 /**
@@ -299,25 +307,29 @@ $db->exec(
         
     }
 
-    private function _createElements($elementSet) {
-        $tbl = get_db()->getTable('Element');
+    private function _createElements($elSetId) {
+        $elSet= get_db()->getTable('ElementSet')->find($elSetId);
+        $elTbl = new ElementTable('Element', get_db());
         $elements = array(
                         array(
-                            "name" => 'tei-type',
-                            "description" => 'TEI type element',
+                            "name" => 'TEI Tag',
+                            "description" => 'TEI tags for identifying items as related to a certain TEI-tagged value',
                             "record_type_id" => 2,
                             "data_type_id" => 1,
-                            "element_set_id" => $elementSet
+                            "element_set_id" => $elSet->id
+                            ),
+                        array(
+                            "name" => 'TEI Element',
+                            "description" => "name of the source TEI-XML element ('name', 'persName', 'interp', etc)",
+                            "record_type_id" => 2,
+                            "data_type_id" => 1,
+                            "element_set_id" => $elSet->id
                             )
                         );
         foreach($elements as $element) {
             $el = null;
-            if (($el = $tbl->findBySql("'name' = ?", 
-                                    array(
-                                        $element['name'], 
-//                                        $element['description']
-                                        )
-                                    )==null)){
+            if (($el = $elTbl->findByElementSetNameAndElementName(
+                                    $elSet->name,$element['name']))==null){
                 $el = new Element();
                 _log("creating new element");
                 $el->record_type_id = $element["record_type_id"];
