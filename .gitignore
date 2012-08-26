@@ -15,6 +15,7 @@ paths.php
 /plugins/SimplePages
 /plugins/index.html
 /plugins/tei-samples
+/plugins/ItemRelations
 /themes/default
 /themes/index.html
 /themes/minimalist
