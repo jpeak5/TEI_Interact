@@ -234,6 +234,22 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         }
     }
     
+    private function _buildRelationTriple($rel){
+        
+        $relTbl = new ItemRelationsPropertyTable('ItemRelationsProperty', $this->getDb());
+        $tbl = $this->getDb()->getTable('ItemRelationsProperty');
+        
+        $prop = $tbl->findBySql('label = ?', array($rel[1]));
+        
+        $r = new ItemRelationsItemRelation();
+        
+        $r->subject_item_id = $rel[0];
+        $r->property_id = $prop[0]->id;;
+        $r->object_item_id = $rel[2];
+
+        return $r;
+    }
+    
     private function _parse(SimpleXMLElement $xml) {
         $tagname = $xml->getName();
         if (!$tagname) {
@@ -243,17 +259,35 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         $tbl = new ItemTypeTable('ItemType', $this->getDb());
         $itemType = null;
         debug('FilesController::_parse() - entering multiway switch ');
+        
+        $file = $this->getDb()->getTable('File')->find($this->getRequest()->getParam('id'));
+        $relations = array();
+        
         switch ($xml->getName()) {
             
             case 'persName':
                 $itemType = $tbl->findByName(TeiInteract::CHARACTER_TYPE);
-                debug('FilesController::_parse() - multiway switch - case = persName');
+                
+                $relations[] = $this->_buildRelationTriple(
+                    array($file->item_id,'Story has Character',null)
+                        );
+                $relations[] = $this->_buildRelationTriple(
+                    array(null,'Character Belongs to Story',$file->item_id)
+                        );
                 break;
 
             case 'geogName':
                 $itemType = $tbl->findByName(TeiInteract::PLACE_TYPE);
-                debug('FilesController::_parse() - multiway switch - case = geogName');
+                
+                $relations[] = $this->_buildRelationTriple(
+                    array($file->item_id,'Has Setting',null)
+                        );
+                $relations[] = $this->_buildRelationTriple(
+                    array(null,'is Setting Of',$file->item_id)
+                        );
                 break;
+            
+            
             /**
              * @TODO name is a really generic tag with many attributes 
              * and will likely require a dedicated method to oparse it
@@ -272,7 +306,14 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
             
             case 'publisher':
                 $itemType = $tbl->findByName(TeiInteract::PUBLISHER_TYPE);
-                debug('FilesController::_parse() - multiway switch - case = publisher');
+                
+                $relations[] = $this->_buildRelationTriple(
+                    array(null,'Published',$file->item_id)
+                        );
+                $relations[] = $this->_buildRelationTriple(
+                    array($file->item_id,'Publisher',null)
+                        );
+
                 break;
 
             default:
@@ -307,6 +348,8 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                     )
                         )
                 );
+                
+                $this->_saveRelations($relations, $item);
 
                 debug('FilesController::_parse() - leaving method       ');
                 TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
@@ -319,8 +362,34 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         
     }
 
-    public function findNamesAction(){
-        
+    private function _saveRelations($relations, $item) {
+        foreach ($relations as $r) {
+            
+            debug(sprintf("from _save, relation type is %s, obj_id = %d",
+                gettype($r), 
+                $r->object_item_id
+                )
+            );
+            $tbl = new ItemRelationsItemRelationTable('ItemRelationsItemRelation', $this->getDb());
+            if (is_null($r->object_item_id)) {
+                $r->object_item_id = $item->id;
+            } elseif (is_null($r->subject_item_id)) {
+                $r->subject_item_id = $item->id;
+            }
+
+            $matches = $tbl->findByObjectItemId($r->subject_item_id);
+            $flag = false;
+            foreach ($matches as $match) {
+                if ($match->object_item_id == $r->object_item_id) {
+                    $flag = true;
+                    break;
+                }
+            }
+            if (!$flag) {
+                $r->save();
+                TeiInteract_ConfigController::saveCleanupData('ItemRelationsItemRelation', $r->id);
+            }
+        }
     }
     
     

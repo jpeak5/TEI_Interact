@@ -144,45 +144,14 @@ $db->exec(
             ";
             $db->exec($namesTable);
             
-            //repopulate the tei_interact_config_table with existing TEI datastreams from Fedora if FedoraConnector is installed
-            //change datastream from 'TEI' to another string, if applicable
+            
             if (function_exists('fedora_connector_installed')) {
 //do something similar
-//                
-//                $datastreams = $db->getTable('FedoraConnector_Datastream')->findBySql('datastream = ?', array('TEI'));
-//                foreach ($datastreams as $datastream) {
-//                    $teiFile = fedora_connector_content_url($datastream);
-//                    //get the TEI id
-//                    $xml_doc = new DomDocument;
-//                    $xml_doc->load($teiFile);
-//                    $xpath = new DOMXPath($xml_doc);
-//
-//                    $teiNode = $xml_doc->getElementsByTagName('TEI');
-//                    $tei2Node = $xml_doc->getElementsByTagName('TEI.2');
-//
-//                    foreach ($teiNode as $teiNode) {
-//                        $p5_id = $teiNode->getAttribute('xml:id');
-//                    }
-//                    foreach ($tei2Node as $tei2Node) {
-//                        $p4_id = $tei2Node->getAttribute('id');
-//                    }
-//
-//                    if (isset($p5_id)) {
-//                        $tei_id = $p5_id;
-//                    } else if (isset($p4_id)) {
-//                        $tei_id = $p4_id;
-//                    } else {
-//                        $tei_id = NULL;
-//                    }
-//
-//                    if ($tei_id != NULL) {
-//                        $teiData = array('item_id' => $datastream->item_id, 'is_fedora_datastream' => 1, 'fedoraconnector_id' => $datastream->id, 'tei_id' => $tei_id);
-//                        $db->insert('tei_interact_configs', $teiData);
-//                    }
-//                }
+
             }
         }
         
+        $this->_saveVocabularies();
         $this->_createItemType();
         $this->_createElements($this->_createElementSets());
     }
@@ -381,7 +350,38 @@ $db->exec(
     function hookDefineAcl($acl) {
         $acl->loadResourceList(array('TeiInteract_Config' => array('browse', 'status')));
     }
-
+    
+    private function _saveVocabularies(){
+            // Install the formal vocabularies and their properties.
+        $formalVocabularies = include 'formal_vocabularies.php';
+        foreach ($formalVocabularies as $formalVocabulary) {
+            $vocabulary = new ItemRelationsVocabulary;
+            $vocabulary->name = $formalVocabulary['name'];
+            $vocabulary->description = $formalVocabulary['description'];
+            $vocabulary->namespace_prefix = $formalVocabulary['namespace_prefix'];
+            $vocabulary->namespace_uri = $formalVocabulary['namespace_uri'];
+            $vocabulary->custom = 0;
+            $vocabulary->save();
+            TeiInteract_ConfigController::saveCleanupData('ItemRelationsVocabulary', 
+                                                                $vocabulary->id);
+            
+//            $vocabularyId = $db->lastInsertId();
+            $vocabularyId = $vocabulary->id;
+            
+            foreach ($formalVocabulary['properties'] as $formalProperty) {
+                $property = new ItemRelationsProperty;
+                $property->vocabulary_id = $vocabularyId;
+                $property->local_part = $formalProperty['local_part'];
+                $property->label = $formalProperty['label'];
+                $property->description = $formalProperty['description'];
+                $property->save();
+                
+                TeiInteract_ConfigController::saveCleanupData('ItemRelationsProperty', 
+                                                                $property->id);
+            }
+        }
+    }
+    
 }
 
 $teiInteract = new TeiInteract();
