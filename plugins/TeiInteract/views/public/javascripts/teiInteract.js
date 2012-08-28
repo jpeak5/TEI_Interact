@@ -9,7 +9,7 @@ $(document).ready(function(){
         function (event) {
 //            var $target = event.target;
             var $hover = encodeURIComponent($(this).text());
-            $("#thing").load("http://apc.local/tei-interact/services/names?hover="+$hover);
+            $("#thing").load("http://apc.local/tei-interact/services/lookup?hover="+$hover);
             console.log('looking up '+$(this).text());
 //            $(this).append($("<span class=\"green\">"+event.pageX+", "+event.pageY+" - "+$target.valueOf()+"</span>"));
         }, 
