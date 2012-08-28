@@ -5,17 +5,22 @@
  * @package TeiInteract 
  */
 $(document).ready(function(){
-    $(".persName").hover(
-        enter,leave
+    $(".tei").hover(
+        function(){
+            console.log("calling enter with param");
+            enter.apply(this,[$(this).data('tei')]);
+            
+        },leave
     );}
     
     
 );
 
-function enter(){
+function enter(tei){
+            console.log("begin the enter callback");
                 var $hover = encodeURIComponent($(this).text());
-            $("#thing").load("http://apc.local/tei-interact/services/lookup?hover="+$hover);
-            console.log('looking up '+$(this).text());
+            $("#thing").load("http://apc.local/tei-interact/services/lookup?hover="+$hover+"&element="+tei);
+            console.log('looking up '+$(this).text() + tei);
 }
 
 function leave(){
