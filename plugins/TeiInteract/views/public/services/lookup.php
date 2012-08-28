@@ -9,7 +9,7 @@
 $buffer = "";
 $thing = "<div class=\"thing-content\">";
 
-    $buffer.="<span class=\"thing-result\">".$result."</span><br/>";
+    $buffer.="<span class=\"thing-result\">".$element.":".$search."</span><br/>";
 
 
 
@@ -22,7 +22,7 @@ $thing = "<div class=\"thing-content\">";
 
     $thing.="<div class=\"thing-struckout\">No Results Found</div>";
 
-    $thing.= "<div class=\"thing-result-header\">results for ".$searchStr.":</div>";
+    $thing.= "<div class=\"thing-result-header\">results for ".$search.":</div>";
     $thing.="<div class=\"thing-results\">";
     $thing.=$buffer;
     $thing.="</div>";
