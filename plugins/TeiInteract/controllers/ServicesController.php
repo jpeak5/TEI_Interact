@@ -43,6 +43,12 @@ class TeiInteract_ServicesController extends Omeka_Controller_Action {
         $this->view->searchStr = $searchStr;
     }
 
+    
+    public function lookupAction(){
+        $searchStr = $this->getRequest()->getParam('hover');
+        debug(sprintf("user mouse is hovering over TEI tag with value %s", $searchStr));
+        $this->view->result = "hello world";
+    }
 }
 
 ?>
