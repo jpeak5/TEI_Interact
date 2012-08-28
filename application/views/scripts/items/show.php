@@ -7,7 +7,12 @@
         <!-- creating a placeholder for thing    -->
     <div id="thing">
     </div>
-    <?php if (function_exists('tei_display_installed')){ echo render_tei_files($title->id, $_GET['section']); } ?>
+    <?php if (function_exists('tei_display_installed')){ 
+        echo render_tei_files($item->id, $_GET['section']); 
+        debug("function_exists('tei_display_installed')");
+        }else{
+            debug("function_NOT_exists('tei_display_installed')");
+        } ?>
 
     <?php echo custom_show_item_metadata(); ?>
 
