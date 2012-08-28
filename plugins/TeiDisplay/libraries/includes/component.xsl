@@ -32,6 +32,7 @@
       POSSIBILITY OF SUCH DAMAGE.
    -->
 
+
 	<!-- ====================================================================== -->
 	<!-- Heads                                                                  -->
 	<!-- ====================================================================== -->
@@ -323,6 +324,12 @@
 
     <xsl:template match="*[local-name()='name']">
         <span class="name">
+            <xsl:apply-templates/>
+        </span>
+    </xsl:template>
+
+    <xsl:template match="*[local-name()='persName']">
+        <span class="persName">
             <xsl:apply-templates/>
         </span>
     </xsl:template>

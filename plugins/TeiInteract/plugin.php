@@ -60,6 +60,14 @@ public function hookInitialize() {
     $tbl = new ElementTable('Element', get_db());
     define(TEI_ELEMENT_ID, $tbl->findByElementSetNameAndElementName(TEI_ELEMENT_SET, TEI_ELEMENT));
     define(TEI_TAG_ID, $tbl->findByElementSetNameAndElementName(TEI_ELEMENT_SET, TEI_TAG));
+    
+    if (!defined('TEI_INTERACT_PLUGIN_DIR')) {
+    define('TEI_INTERACT_PLUGIN_DIR', dirname(__FILE__));
+    
+    
+    }
+    require_once TEI_INTERACT_PLUGIN_DIR.'/helpers/TeiInteractFunctions.php';   
+    debug(sprintf("my plugin dir = %s",TEI_INTERACT_PLUGIN_DIR));
 }
 
 /**
