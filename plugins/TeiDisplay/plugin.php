@@ -374,17 +374,21 @@ function tei_display_installed(){
 }
 
 function render_tei_files($item_id, $section){
+    debug(sprintf("%s: begin method","render_tei_files()"));
 	$db = get_db();
 	$item = $db->getTable('Item')->find($item_id);
+        debug(sprintf("%s Looking for item with id %d; found %d items","render_tei_files()", $item_id,count($item)));
 	$hasTeiFile = array();
 	foreach ($item->Files as $file){
 		if (trim(strip_formatting(item_file('Dublin Core', 'Type', $options, $file)) == 'TEI Document')){
 			$hasTeiFile[] = 'true';
 		}
+                debug(sprintf("%s: for this item, there are/is %d TEI file","render_tei_files()", count($hasTeiFile)));
 	}
 	if (in_array('true', $hasTeiFile)){
 		$teiFiles = $db->getTable('TeiDisplay_Config')->findBySql('item_id = ?', array($item_id));
 		foreach ($teiFiles as $teiFile){
+                    debug(sprintf("%s: calling render for file, TEI_DIPLAY_CONFIG_id = ","render_tei_files()", $teiFile->id));
 			render_tei_file($teiFile->id, $section);
 		}
 	}
@@ -393,6 +397,7 @@ function render_tei_files($item_id, $section){
 function render_tei_file($identifier, $section){
 	$db = get_db();
 	$teiRecord = $db->getTable('TeiDisplay_Config')->find($identifier);
+        debug(sprintf("looking for file id %d", $identifier));
 	//initialize Dom xslt, xml documents
 	$xp = new XsltProcessor();
 	$xsl = new DomDocument;
@@ -401,6 +406,7 @@ function render_tei_file($identifier, $section){
 	if ($teiRecord->file_id != NULL){
 		$file_id = $teiRecord->file_id;
 		$teiFile = $db->getTable('File')->find($file_id)->getWebPath('archive');
+                debug(sprintf("found file with web path", $teiFile));
 	} 
 	//render TEI file from Fedora.
 	if (function_exists('fedora_connector_installed')){
@@ -426,9 +432,11 @@ function render_tei_file($identifier, $section){
 	try { 
 		if ($doc = $xp->transformToXML($xml_doc)) {			
 			echo $doc;
+                        debug("echoing successful transform");
 		}
 	} catch (Exception $e){
 		$this->view->error = $e->getMessage();
+                debug("problems transforming xml");
 	}
 }
 
