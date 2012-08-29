@@ -9,24 +9,39 @@
 $buffer = "";
 $thing = "<div class=\"thing-content\">";
 
-    $buffer.="<span class=\"thing-result\">"."</span><br/>";
-
-    $buffer.="<ul>";
-        foreach ($related as $rel => $kvPair) {
-            foreach($kvPair as $k => $v){
-                $img = "";
-                $buffer.= "<li>".$k." = ";
-                
-                if(item_has_files($v)){
-                    $img = item_square_thumbnail(array(), 0, $v);
-                    debug($img);
-                }
-                
-                $buffer.= $v->id.$img."</li>";
-            }
-        }
-    $buffer.="</ul>";
+    $buffer.="<span class=\"thing-result\">";
+    $buffer.="<h4>".$tripleSet->rootTitle."</h4><br/>";
+    $buffer.="</span><br/>";
     
+    
+    
+    if ($tripleSet) {
+        $buffer.="<ul>";
+        foreach ($tripleSet->triples as $itemID => $triples) {
+            foreach($triples as $triple){
+            
+            debug(sprintf("printing triple relID %d", $triple->irIR->id));
+            $tbl = get_db()->getTable('Item');
+            $item = $triple->key == $triple->subject->id ? $tbl->find($triple->object->id) : $tbl->find($triple->subject->id);
+    
+            
+            
+            set_current_item($item);
+            debug(sprintf("from lookup.php, item id is %d",$item->id));
+            $triple->dumpTriple();
+
+            $buffer.= "<li>";
+            
+            $buffer.="<h6>".$triple->irProp->label."</h6>";
+            $buffer.= item_square_thumbnail(array(), 0, $item);
+            debug(sprintf("img tag = %s",item_square_thumbnail(array(), 0, $item)));
+            $buffer.= "</li>";
+            $buffer.="</li>";
+            $buffer.="</ul>";
+            }
+            
+        }    
+    }
 
 
 /**
@@ -37,7 +52,7 @@ $thing = "<div class=\"thing-content\">";
 
 //    $thing.="<div class=\"thing-struckout\">No Results Found</div>";
 
-    $thing.= "<div class=\"thing-result-header\">results for ".$element.":".$search."<br/>type ".$type.":</div>";
+    $thing.= "<div class=\"thing-result-header\"></div>";
     $thing.="<div class=\"thing-results\">";
     $thing.=$buffer;
     $thing.="</div>";

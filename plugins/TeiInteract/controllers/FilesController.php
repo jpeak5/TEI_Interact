@@ -250,6 +250,16 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
         return $r;
     }
     
+    /**
+     * This method creates relationships for a predefined (hard-coded) set of tags
+     * by first matching it against a number of cases.
+     * Once the relationships are created, we, cleanup the input string (ie the value of the XML),
+     * see if a similarly named item already exists, and if not, we save a new item for the 
+     * XML text value
+     * 
+     * @param SimpleXMLElement $xml
+     * @return boolean
+     */
     private function _parse(SimpleXMLElement $xml) {
         $tagname = $xml->getName();
         if (!$tagname) {
@@ -354,22 +364,25 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                 debug('FilesController::_parse() - leaving method       ');
                 TeiInteract_ConfigController::saveCleanupData('Item', $item->id);
 
-                /**
-                 * @TODO this is a hack; check the docs for a cleaner solution
-                 * http://framework.zend.com/manual/en/zend.controller.actionhelpers.html
-                 */
-//                $this->redirect->gotoURL('tei-interact/files');
-        
+        return true;
     }
 
+    /**
+     * for each relation created in the _parse method, add a reference to the item in question 
+     * in whichever field is empty (subject or object);
+     * But First! check to see if a dupe exists
+     * 
+     * @param array $relations new relations objects
+     * @param type $item the item to/from which we are creating a relation
+     */
     private function _saveRelations($relations, $item) {
         foreach ($relations as $r) {
             
-            debug(sprintf("from _save, relation type is %s, obj_id = %d",
-                gettype($r), 
-                $r->object_item_id
-                )
-            );
+//            debug(sprintf("from _save, relation type is %s, obj_id = %d",
+//                gettype($r), 
+//                $r->object_item_id
+//                )
+//            );
             $tbl = new ItemRelationsItemRelationTable('ItemRelationsItemRelation', $this->getDb());
             if (is_null($r->object_item_id)) {
                 $r->object_item_id = $item->id;
@@ -377,11 +390,11 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
                 $r->subject_item_id = $item->id;
             }
 
-            $matches = $tbl->findByObjectItemId($r->subject_item_id);
-            $flag = false;
+            $matches = $tbl->findByObjectItemId($r->object_item_id);
+            $flag = false; //set to true if we find that an identical relationship already exists
             foreach ($matches as $match) {
-                if ($match->object_item_id == $r->object_item_id) {
-                    $flag = true;
+                if ($match->subject_item_id == $r->subject_item_id) {
+                    $flag = true; //duplicate found; exit;
                     break;
                 }
             }
@@ -394,65 +407,6 @@ class TeiInteract_FilesController extends Omeka_Controller_Action {
     
     
     
-    /**
-     *
-     * @param SimpleXMLElement $xml
-     * @return TeiInteractName[]
-     */
-    private function _parseNames(SimpleXMLElement $xml) {
-
-        debug('begin getNames SimpleXML routine');
-        $types = array('untyped' => array());
-        $sections = array('text', 'teiHeader');
-        $nameObjs = array();
-
-        foreach ($sections as $section) {
-            $names = $xml->xpath("{$section}//name");
-            foreach ($names as $name) {
-                if (strlen($name) > 0) {
-                    $nameObj = new TeiInteractName();
-                    $nameObj->value = $name;
-                    $nameObj->file_id = $this->file_id;
-                    $nameObj->teiHeader = $section == 'teiHeader' ? 1 : 0;
-
-                    if ($name['type']) {
-                        $nameObj->type = (String) $name['type'];
-
-                        if (!array_key_exists($nameObj->type, $types)) {
-
-                            $types[$nameObj->type] = array();
-                        }
-                    } else {
-                        $nameObj->type = 'untyped';
-                    }
-//clean up the text, accounting for possesive forms...
-                    /**
-                     * @TODO add regex filters here to 
-                     * normalize other text features like extra whitespace,
-                     * tabs and line breaks, etc
-                     */
-                    if (substr($nameObj->value, strlen($nameObj->value) - 2) == "'s") {
-                        $clnName = substr($nameObj->value, 0, strlen($nameObj->value) - 2);
-                        _log("cleaning " . $nameObj->value . " to " . $clnName);
-                        $nameObj->value = $clnName;
-                    }
-
-                    if (!array_key_exists($nameObj->value, $types[$nameObj->type])) {
-                        $nameObjs[] = $nameObj;
-                    } else {
-                        foreach ($nameObjs as $no) {
-                            if (!self::_namesDiffer($nameObj, $no)) {
-                                $no->occurrenceCount++;
-                            }
-                        }
-
-//                    if ($this->debug)debug("duplicate entry, updating the counter");
-                    }
-                }
-            }
-        }
-        return $nameObjs;
-    }
 
     private function _createNames($names) {
         $db = get_db();
