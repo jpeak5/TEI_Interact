@@ -66,7 +66,9 @@ public function hookInitialize() {
     
     
     }
-    require_once TEI_INTERACT_PLUGIN_DIR.'/helpers/TeiInteractFunctions.php';   
+    require_once TEI_INTERACT_PLUGIN_DIR.'/helpers/TeiInteractFunctions.php';
+    require_once TEI_INTERACT_PLUGIN_DIR.'/helpers/TeiInteract_Triple.php';
+    require_once TEI_INTERACT_PLUGIN_DIR.'/helpers/TeiInteract_TripleSet.php';
     debug(sprintf("my plugin dir = %s",TEI_INTERACT_PLUGIN_DIR));
 }
 
