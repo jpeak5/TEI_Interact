@@ -10,7 +10,7 @@ $(document).ready(function(){
             console.log("calling enter with param");
             enter.apply(this,[$(this).data("tei").tag, $(this).data("tei").type]);
             
-        },leave
+        },leave.apply(this)
     );}
     
     
@@ -29,6 +29,7 @@ function enter(tag, type){
 }
 
 function leave(){
+    
     $("#thing").html("");
 }
 
