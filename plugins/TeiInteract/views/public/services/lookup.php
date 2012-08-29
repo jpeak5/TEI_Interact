@@ -23,7 +23,7 @@ $thing = "<div class=\"thing-content\">";
             debug(sprintf("printing triple relID %d", $triple->irIR->id));
             $tbl = get_db()->getTable('Item');
             $item = $triple->key == $triple->subject->id ? $tbl->find($triple->object->id) : $tbl->find($triple->subject->id);
-    
+            
             
             
             set_current_item($item);
@@ -35,12 +35,16 @@ $thing = "<div class=\"thing-content\">";
             $buffer.="<h6>".$triple->irProp->label."</h6>";
             $buffer.= item_square_thumbnail(array(), 0, $item);
             debug(sprintf("img tag = %s",item_square_thumbnail(array(), 0, $item)));
-            $buffer.= "</li>";
+            
+            $buffer.=sprintf("<a href=\"%s\">%s</a>",  item_uri('show', $item),item('Dublin Core', 'Title', array(), $item));
+            
+            
             $buffer.="</li>";
-            $buffer.="</ul>";
+            
             }
             
         }    
+        $buffer.="</ul>";
     }
 
 
