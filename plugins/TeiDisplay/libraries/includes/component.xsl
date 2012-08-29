@@ -323,7 +323,26 @@
     </xsl:template>
 
     <xsl:template match="*[local-name()='name']">
-        <span class="tei" data-tei="name">
+        <span class="tei">
+            <xsl:choose>
+                <xsl:when test="@type">
+                    <xsl:variable name="type" select="@type"/>
+                
+                    <xsl:attribute name="data-tei">
+                        <xsl:text>{"tag":"name","type":"</xsl:text>
+                        <xsl:value-of select="$type"/>
+                        <xsl:text>"}</xsl:text>
+                    </xsl:attribute>
+                    
+                    <xsl:apply-templates/>
+        
+                </xsl:when>
+            </xsl:choose>
+        </span>
+    </xsl:template>
+    
+    <xsl:template match="*[local-name()='geogName']">
+        <span class="tei" data-tei="geogName">
             <xsl:apply-templates/>
         </span>
     </xsl:template>

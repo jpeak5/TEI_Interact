@@ -8,7 +8,7 @@ $(document).ready(function(){
     $(".tei").hover(
         function(){
             console.log("calling enter with param");
-            enter.apply(this,[$(this).data('tei')]);
+            enter.apply(this,[$(this).data("tei").tag, $(this).data("tei").type]);
             
         },leave
     );}
@@ -16,11 +16,16 @@ $(document).ready(function(){
     
 );
 
-function enter(tei){
+function enter(tag, type){
             console.log("begin the enter callback");
                 var $hover = encodeURIComponent($(this).text());
-            $("#thing").load("http://apc.local/tei-interact/services/lookup?hover="+$hover+"&element="+tei);
-            console.log('looking up '+$(this).text() + tei);
+            $("#thing").load("http://apc.local/tei-interact/services/lookup?hover="
+                +$hover
+                +"&element="
+                +tag
+                +"&type="
+                +type);
+            console.log('looking up '+$(this).text() + tag);
 }
 
 function leave(){
