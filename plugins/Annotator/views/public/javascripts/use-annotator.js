@@ -5,5 +5,5 @@
 
 
 jQuery(function ($) {
-    $('.normal').annotator();
+    $('body').annotator();
 });
