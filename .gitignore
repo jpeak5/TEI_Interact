@@ -5,6 +5,7 @@
 archive/
 install/
 db.ini
+db.sql
 index.php
 license.txt
 readme.txt
